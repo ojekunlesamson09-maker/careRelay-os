@@ -1,0 +1,70 @@
+{
+  "name": "CareRelay OS",
+  "version": "1.0.0",
+  "description": "A 4-agent clinical handoff intelligence system that transforms raw FHIR patient data into verified, safe clinical handoffs using MCP and A2A standards.",
+  "author": "Samson Ojekunle",
+  "category": "clinical-decision-support",
+  "tags": ["fhir", "handoff", "clinical-ai", "patient-safety", "sbar", "mcp", "a2a"],
+  "capabilities": {
+    "fhir_integration": true,
+    "sharp_context": true,
+    "multi_agent": true,
+    "hallucination_prevention": true
+  },
+  "agents": [
+    {
+      "id": "context-builder",
+      "name": "Context Builder",
+      "description": "Fetches FHIR data and builds unified patient timeline",
+      "provider": "groq",
+      "model": "llama-3.3-70b-versatile"
+    },
+    {
+      "id": "risk-intelligence",
+      "name": "Risk Intelligence",
+      "description": "Detects deterioration signals and risk flags",
+      "provider": "groq",
+      "model": "llama-3.3-70b-versatile"
+    },
+    {
+      "id": "clinical-reasoning",
+      "name": "Clinical Reasoning",
+      "description": "Generates data-grounded SBAR clinical handoff",
+      "provider": "openai",
+      "model": "gpt-4o"
+    },
+    {
+      "id": "handoff-validation",
+      "name": "Handoff Validation",
+      "description": "Validates every claim against FHIR source, removes hallucinations",
+      "provider": "openai",
+      "model": "gpt-4o"
+    }
+  ],
+  "mcp_tools": [
+    {
+      "name": "generate_clinical_handoff",
+      "description": "Runs full 4-agent pipeline for a patient",
+      "input": {"patient_id": "string"}
+    },
+    {
+      "name": "get_patient_risk_assessment",
+      "description": "Returns risk flags and urgency score",
+      "input": {"patient_id": "string"}
+    },
+    {
+      "name": "get_patient_context",
+      "description": "Returns unified FHIR patient context",
+      "input": {"patient_id": "string"}
+    }
+  ],
+  "sharp_context": {
+    "supported": true,
+    "fields": ["patient_id", "fhir_server", "session_token"]
+  },
+  "endpoints": {
+    "handoff": "POST /api/handoff/:patientId",
+    "fhir": "GET /api/fhir/patient/:id",
+    "mcp": "GET /api/mcp/health"
+  }
+}

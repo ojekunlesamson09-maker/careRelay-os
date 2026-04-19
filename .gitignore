@@ -1,0 +1,13 @@
+# Python
+ai-agents/venv/
+ai-agents/.env
+__pycache__/
+*.pyc
+
+# Node
+backend/node_modules/
+backend/.env
+
+# Environment
+.env
+*.env
