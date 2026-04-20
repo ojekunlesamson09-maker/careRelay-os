@@ -144,8 +144,8 @@ async def call_tool(name: str, arguments: dict) -> list[types.TextContent]:
 
 
 async def main():
-    print("🔌 CareRelay OS MCP Server starting...")
-    print("📋 Tools available:")
+    log("CareRelay OS MCP Server starting...")
+log("Tools available:")
     print("   - generate_clinical_handoff")
     print("   - get_patient_risk_assessment")
     print("   - get_patient_context")
