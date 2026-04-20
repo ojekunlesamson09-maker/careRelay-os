@@ -1,115 +1,149 @@
 import { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, Link } from 'react-router-dom'
+import Navbar from '../components/Navbar'
+import MetricsDashboard from '../components/MetricsDashboard'
+import BeforeAfter from '../components/BeforeAfter'
+import TechStack from '../components/TechStack'
+import AgentPipeline from '../components/AgentPipeline'
 
 export default function Dashboard() {
   const [patientId, setPatientId] = useState('')
-  const [loading, setLoading] = useState(false)
   const navigate = useNavigate()
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = (e) => {
     e.preventDefault()
     if (!patientId.trim()) return
-    setLoading(true)
     navigate(`/handoff/${patientId.trim()}`)
   }
 
-  const demoPatients = [
-    { id: '90274720', name: 'Nuñez Karla', condition: 'Complex case' },
-    { id: 'example', name: 'Aseel Mustafa', condition: 'Test patient' },
-  ]
-
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-950 to-blue-800">
-      {/* Header */}
-      <div className="px-8 py-6 flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-black text-white tracking-tight">
-            🏥 CareRelay <span className="text-blue-300">OS</span>
+    <div className="min-h-screen bg-white">
+      <Navbar />
+
+      {/* Hero Section */}
+      <div className="bg-gradient-to-br from-blue-950 via-blue-900 to-blue-800 px-6 py-20 text-center">
+        <div className="max-w-4xl mx-auto">
+          <div className="inline-flex items-center gap-2 bg-blue-800 border border-blue-600
+                          rounded-full px-4 py-2 text-blue-300 text-sm mb-6">
+            <span className="animate-pulse">●</span>
+            Built for Agents Assemble Hackathon · MCP + A2A + FHIR R4
+          </div>
+
+          <h1 className="text-5xl md:text-6xl font-black text-white mb-6 leading-tight">
+            Prevent Dangerous Patient<br />
+            <span className="text-blue-300">Handoff Errors</span>
           </h1>
-          <p className="text-blue-300 text-sm mt-1">Clinical Handoff Intelligence Network</p>
-        </div>
-        <div className="flex gap-2">
-          <span className="bg-green-500 text-white text-xs px-3 py-1 rounded-full font-bold">
-            ● 4 Agents Online
-          </span>
-          <span className="bg-blue-500 text-white text-xs px-3 py-1 rounded-full font-bold">
-            FHIR R4
-          </span>
-        </div>
-      </div>
 
-      {/* Hero */}
-      <div className="text-center px-8 py-12">
-        <h2 className="text-5xl font-black text-white mb-4 leading-tight">
-          The Last Mile of<br />
-          <span className="text-blue-300">Clinical Intelligence</span>
-        </h2>
-        <p className="text-blue-200 text-lg max-w-2xl mx-auto mb-12">
-          A 4-agent AI system that transforms raw FHIR patient data into verified,
-          safe clinical handoffs — eliminating the #1 cause of medical errors.
-        </p>
+          <p className="text-blue-200 text-xl max-w-2xl mx-auto mb-10">
+            CareRelay OS is a 4-agent clinical intelligence system that transforms
+            raw FHIR data into verified, safe handoffs — eliminating the #1 cause
+            of medical errors.
+          </p>
 
-        {/* Search Box */}
-        <form onSubmit={handleSubmit} className="max-w-lg mx-auto">
-          <div className="flex gap-3">
-            <input
-              type="text"
-              value={patientId}
-              onChange={(e) => setPatientId(e.target.value)}
-              placeholder="Enter FHIR Patient ID..."
-              className="flex-1 px-5 py-4 rounded-xl text-gray-800 font-medium
-                         focus:outline-none focus:ring-4 focus:ring-blue-300 text-lg"
-            />
-            <button
-              type="submit"
-              disabled={loading || !patientId}
-              className="bg-blue-400 hover:bg-blue-300 disabled:opacity-50
-                         text-blue-950 font-black px-8 py-4 rounded-xl
-                         transition-all duration-200 text-lg"
+          {/* CTA Buttons */}
+          <div className="flex flex-col sm:flex-row gap-4 justify-center mb-12">
+            <Link
+              to="/live-demo"
+              className="bg-blue-400 hover:bg-blue-300 text-blue-950 font-black
+                         px-8 py-4 rounded-xl text-lg transition-all"
             >
-              {loading ? '...' : 'Generate →'}
-            </button>
-          </div>
-        </form>
-
-        {/* Demo Patients */}
-        <div className="mt-8">
-          <p className="text-blue-300 text-sm mb-3">Quick test patients:</p>
-          <div className="flex gap-3 justify-center">
-            {demoPatients.map((p) => (
+              ⚡ Try Live Demo
+            </Link>
+            <form onSubmit={handleSubmit} className="flex gap-2">
+              <input
+                type="text"
+                value={patientId}
+                onChange={e => setPatientId(e.target.value)}
+                placeholder="FHIR Patient ID..."
+                className="px-4 py-4 rounded-xl text-gray-800 font-medium
+                           focus:outline-none focus:ring-4 focus:ring-blue-300"
+              />
               <button
-                key={p.id}
-                onClick={() => navigate(`/handoff/${p.id}`)}
-                className="bg-white/10 hover:bg-white/20 text-white px-4 py-2
-                           rounded-xl text-sm transition-all duration-200 border border-white/20"
+                type="submit"
+                disabled={!patientId}
+                className="bg-white/20 hover:bg-white/30 text-white font-bold
+                           px-6 py-4 rounded-xl transition-all border border-white/30"
               >
-                {p.name} <span className="text-blue-300">#{p.id}</span>
+                Generate →
               </button>
-            ))}
+            </form>
+          </div>
+
+          {/* Agent Pipeline Preview */}
+          <div className="max-w-3xl mx-auto">
+            <AgentPipeline />
           </div>
         </div>
       </div>
 
-      {/* Agent Cards */}
-      <div className="px-8 pb-12 max-w-5xl mx-auto">
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          {[
-            { num: 1, name: 'Context Builder', desc: 'Unified patient timeline', color: 'blue', provider: 'Groq' },
-            { num: 2, name: 'Risk Intelligence', desc: 'Deterioration signals', color: 'red', provider: 'Groq' },
-            { num: 3, name: 'Clinical Reasoning', desc: 'SBAR generation', color: 'yellow', provider: 'Groq' },
-            { num: 4, name: 'Handoff Validation', desc: 'Hallucination guard', color: 'green', provider: 'Groq' },
-          ].map((agent) => (
-            <div key={agent.num} className="bg-white/10 backdrop-blur rounded-xl p-4 border border-white/20">
-              <div className={`w-8 h-8 rounded-lg bg-${agent.color}-500 flex items-center
-                              justify-center text-white font-black text-sm mb-3`}>
-                {agent.num}
+      {/* Metrics */}
+      <MetricsDashboard />
+
+      {/* Before / After */}
+      <BeforeAfter />
+
+      {/* Tech Stack */}
+      <TechStack />
+
+      {/* Story Case */}
+      <div className="py-16 px-6 bg-gray-50">
+        <div className="max-w-4xl mx-auto text-center">
+          <h2 className="text-3xl font-black text-gray-900 mb-3">
+            Meet Margaret Chen
+          </h2>
+          <p className="text-gray-600 mb-8">
+            A real clinical scenario. See how CareRelay OS catches what humans miss.
+          </p>
+
+          <div className="bg-white rounded-2xl shadow-lg p-8 text-left border-l-4 border-red-500">
+            <div className="flex items-start gap-4 mb-6">
+              <div className="text-4xl">👩‍⚕️</div>
+              <div>
+                <h3 className="text-xl font-black text-gray-900">Margaret Chen, 67F</h3>
+                <p className="text-gray-600">Community-acquired pneumonia · Admitted 6 hours ago</p>
               </div>
-              <h3 className="text-white font-bold text-sm">{agent.name}</h3>
-              <p className="text-blue-300 text-xs mt-1">{agent.desc}</p>
-              <span className="text-xs text-white/50 mt-2 block">{agent.provider}</span>
+              <span className="ml-auto bg-red-100 text-red-800 px-3 py-1 rounded-full text-sm font-bold">
+                CRITICAL
+              </span>
             </div>
-          ))}
+
+            <div className="grid md:grid-cols-2 gap-6 mb-6">
+              {[
+                { label: 'Vitals', value: 'BP 88/54 ↓ · SpO2 91% · Temp 39.2°C · HR 118', alert: true },
+                { label: 'Allergy', value: 'PENICILLIN — anaphylaxis', alert: true },
+                { label: 'Medications', value: 'Lisinopril · Metformin · Warfarin', alert: false },
+                { label: 'Pending', value: 'Blood cultures · Chest CT · INR', alert: false },
+              ].map((item, i) => (
+                <div key={i} className={`rounded-xl p-4 ${item.alert ? 'bg-red-50 border border-red-200' : 'bg-gray-50'}`}>
+                  <p className="text-xs font-bold text-gray-500 mb-1">{item.label}</p>
+                  <p className={`font-semibold ${item.alert ? 'text-red-700' : 'text-gray-800'}`}>
+                    {item.alert && '⚠️ '}{item.value}
+                  </p>
+                </div>
+              ))}
+            </div>
+
+            <Link
+              to="/live-demo"
+              className="block w-full bg-blue-600 hover:bg-blue-700 text-white
+                         font-black py-4 rounded-xl text-center transition-all text-lg"
+            >
+              🚀 See How CareRelay Handles This Case →
+            </Link>
+          </div>
         </div>
+      </div>
+
+      {/* Footer */}
+      <div className="bg-blue-950 px-6 py-10 text-center">
+        <p className="text-white font-black text-xl mb-2">🏥 CareRelay OS</p>
+        <p className="text-blue-400 text-sm">
+          Built for the Agents Assemble Healthcare AI Hackathon ·
+          MCP + A2A + FHIR R4 · Prompt Opinion Platform
+        </p>
+        <p className="text-blue-500 text-xs mt-2">
+          By Samson Ojekunle · 2026
+        </p>
       </div>
     </div>
   )
