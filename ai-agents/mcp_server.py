@@ -1,3 +1,8 @@
+import sys
+
+def log(*args, **kwargs):
+    # MCP-safe logging (doesn't touch stdout)
+    print(*args, file=sys.stderr, flush=True, **kwargs)
 import asyncio
 import json
 import os
