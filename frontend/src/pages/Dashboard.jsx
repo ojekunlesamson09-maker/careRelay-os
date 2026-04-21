@@ -5,6 +5,8 @@ import MetricsDashboard from '../components/MetricsDashboard'
 import BeforeAfter from '../components/BeforeAfter'
 import TechStack from '../components/TechStack'
 import AgentPipeline from '../components/AgentPipeline'
+import HallucinationDemo from '../components/HallucinationDemo'
+import ArchitectureDiagram from '../components/ArchitectureDiagram'
 
 // ── Mini Live Demo (inline on homepage) ─────────────────────
 const SAMPLE = {
@@ -27,7 +29,6 @@ function MiniDemo() {
 
   return (
     <div className="bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden">
-      {/* Patient card */}
       <div className="bg-blue-950 px-6 py-4 flex items-center justify-between">
         <div>
           <p className="text-white font-black">{SAMPLE.name}</p>
@@ -38,7 +39,6 @@ function MiniDemo() {
         </span>
       </div>
 
-      {/* Data grid */}
       <div className="grid grid-cols-2 gap-3 p-4">
         {[
           { label: 'Vitals', value: SAMPLE.vitals, alert: true },
@@ -55,7 +55,6 @@ function MiniDemo() {
         ))}
       </div>
 
-      {/* Generate button */}
       {!ran && (
         <div className="px-4 pb-4">
           <button
@@ -73,7 +72,6 @@ function MiniDemo() {
         </div>
       )}
 
-      {/* Output */}
       {ran && (
         <div className="px-4 pb-4 space-y-3">
           <div className="bg-red-600 text-white rounded-xl p-3 text-center font-black">
@@ -135,7 +133,6 @@ export default function Dashboard() {
       {/* ── SECTION 1: HERO ─────────────────────────────────── */}
       <div className="bg-gradient-to-br from-blue-950 via-blue-900 to-blue-800 px-6 py-16">
         <div className="max-w-6xl mx-auto grid md:grid-cols-2 gap-12 items-center">
-          {/* Left */}
           <div>
             <div className="inline-flex items-center gap-2 bg-blue-800 border border-blue-600
                             rounded-full px-4 py-2 text-blue-300 text-sm mb-6">
@@ -154,7 +151,6 @@ export default function Dashboard() {
               hallucinations — eliminating the #1 cause of medical errors.
             </p>
 
-            {/* Feature pills */}
             <div className="flex flex-wrap gap-2 mb-8">
               {[
                 '📊 Reads FHIR data',
@@ -170,7 +166,6 @@ export default function Dashboard() {
               ))}
             </div>
 
-            {/* CTAs */}
             <div className="flex flex-wrap gap-3 mb-6">
               <Link to="/live-demo"
                 className="bg-blue-400 hover:bg-blue-300 text-blue-950 font-black
@@ -194,7 +189,6 @@ export default function Dashboard() {
               </form>
             </div>
 
-            {/* Trust badges */}
             <div className="flex flex-wrap gap-3">
               {[
                 { icon: '🏥', text: 'FHIR R4 Native' },
@@ -211,7 +205,6 @@ export default function Dashboard() {
             </div>
           </div>
 
-          {/* Right — Mini Demo */}
           <div>
             <p className="text-blue-300 text-sm font-semibold mb-3 text-center">
               👇 Try it right here — no signup needed
@@ -263,10 +256,10 @@ export default function Dashboard() {
             {[
               { icon: '🧩', title: 'Synthesizes Scattered Records', desc: 'Reads Patient, Observation, Condition, Medication, and Encounter FHIR resources and builds a unified clinical timeline — something no rule-based system can do.' },
               { icon: '⚡', title: 'Prioritizes Urgent Changes', desc: 'Agent 2 detects deterioration signals, abnormal vitals trends, and contradictions in records — surfacing what matters RIGHT NOW for patient safety.' },
-              { icon: '🔍', title: 'Detects Missing Critical Info', desc: 'Identifies what SHOULD be in the record but isn\'t — pending labs, unchecked allergies, missing vitals — and flags them before handoff.' },
+              { icon: '🔍', title: 'Detects Missing Critical Info', desc: "Identifies what SHOULD be in the record but isn't — pending labs, unchecked allergies, missing vitals — and flags them before handoff." },
               { icon: '📋', title: 'Generates Clinician-Ready SBAR', desc: 'Agent 3 converts raw data into a structured Situation-Background-Assessment-Recommendation handoff grounded in actual patient data.' },
               { icon: '🛡️', title: 'Prevents Hallucinations', desc: 'Agent 4 cross-checks every claim against the FHIR source. Unsupported statements are removed. Nothing goes to a clinician unverified.' },
-              { icon: '👨‍⚕️', title: 'Keeps Humans in Control', desc: 'CareRelay never replaces clinical judgment. Every handoff requires clinician review and approval before it\'s sent — with full audit trail.' },
+              { icon: '👨‍⚕️', title: 'Keeps Humans in Control', desc: "CareRelay never replaces clinical judgment. Every handoff requires clinician review and approval before it's sent — with full audit trail." },
             ].map((item, i) => (
               <div key={i} className="bg-gray-50 rounded-2xl p-6 border border-gray-100">
                 <div className="text-3xl mb-3">{item.icon}</div>
@@ -320,7 +313,7 @@ export default function Dashboard() {
             </h2>
             <p className="text-gray-500">
               4 specialized AI agents working in sequence — each passing
-              verified context to the next
+              verified context to the next via A2A protocol
             </p>
           </div>
           <AgentPipeline />
@@ -348,10 +341,16 @@ export default function Dashboard() {
         </div>
       </div>
 
-      {/* ── SECTION 6: METRICS ───────────────────────────────── */}
+      {/* ── SECTION 6: HALLUCINATION DEMO ───────────────────── */}
+      <HallucinationDemo />
+
+      {/* ── SECTION 7: ARCHITECTURE DIAGRAM ─────────────────── */}
+      <ArchitectureDiagram />
+
+      {/* ── SECTION 8: METRICS ───────────────────────────────── */}
       <MetricsDashboard />
 
-      {/* ── SECTION 7: SAFETY & TRUST ────────────────────────── */}
+      {/* ── SECTION 9: SAFETY & TRUST ────────────────────────── */}
       <div className="py-16 px-6 bg-white">
         <div className="max-w-5xl mx-auto">
           <div className="text-center mb-10">
@@ -381,7 +380,6 @@ export default function Dashboard() {
             ))}
           </div>
 
-          {/* Safety badge strip */}
           <div className="bg-green-900 rounded-2xl p-6 text-center">
             <p className="text-white font-black text-lg mb-4">
               Every Handoff Ships With These Guarantees
@@ -405,13 +403,13 @@ export default function Dashboard() {
         </div>
       </div>
 
-      {/* ── SECTION 8: BEFORE / AFTER ────────────────────────── */}
+      {/* ── SECTION 10: BEFORE / AFTER ───────────────────────── */}
       <BeforeAfter />
 
-      {/* ── SECTION 9: TECH STACK ────────────────────────────── */}
+      {/* ── SECTION 11: TECH STACK ───────────────────────────── */}
       <TechStack />
 
-      {/* ── SECTION 10: FINAL CTA ────────────────────────────── */}
+      {/* ── SECTION 12: FINAL CTA ────────────────────────────── */}
       <div className="bg-gradient-to-br from-blue-950 to-blue-800 py-20 px-6 text-center">
         <div className="max-w-3xl mx-auto">
           <h2 className="text-4xl font-black text-white mb-4">
