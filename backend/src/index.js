@@ -19,16 +19,15 @@ app.use(express.json());
 
 // ── SHARP Context Middleware ────────────────────────
 app.use((req, res, next) => {
-  const patientId = req.headers['x-fhir-patient'] || req.headers['x-patient-id']
-  const fhirToken = req.headers['x-fhir-token'] || req.headers['authorization']
-  const tenantId = req.headers['x-tenant-id']
+  const patientId = req.headers['x-patient-id'] || req.headers['x-fhir-patient']
+  const fhirToken = req.headers['x-fhir-access-token'] || req.headers['authorization']
+  const fhirServerUrl = req.headers['x-fhir-server-url'] || process.env.FHIR_BASE_URL
 
   if (patientId) {
     req.sharpContext = {
       patientId,
       fhirToken,
-      tenantId,
-      fhirBaseUrl: process.env.FHIR_BASE_URL
+      fhirServerUrl
     }
   }
   next()
@@ -48,7 +47,20 @@ app.post('/mcp', async (req, res) => {
       jsonrpc: '2.0',
       result: {
         protocolVersion: '2024-11-05',
-        capabilities: { tools: {} },
+        capabilities: {
+          tools: {},
+          extensions: {
+            'ai.promptopinion/fhir-context': {
+              scopes: [
+                { name: 'patient/Patient.rs', required: true },
+                { name: 'patient/Observation.rs', required: true },
+                { name: 'patient/Condition.rs', required: false },
+                { name: 'patient/MedicationRequest.rs', required: false },
+                { name: 'patient/Encounter.rs', required: false }
+              ]
+            }
+          }
+        },
         serverInfo: { name: 'CareRelay OS', version: '1.0.0' }
       },
       id
