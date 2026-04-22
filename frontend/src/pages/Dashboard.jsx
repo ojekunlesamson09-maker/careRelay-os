@@ -195,6 +195,7 @@ export default function Dashboard() {
                 { icon: '🔌', text: 'MCP Compatible' },
                 { icon: '🤝', text: 'A2A Standards' },
                 { icon: '🛡️', text: 'Hallucination Guard' },
+                { icon: '🏆', text: 'Live on Prompt Opinion' },
               ].map((b, i) => (
                 <div key={i} className="flex items-center gap-1.5 bg-white/10
                                         rounded-lg px-3 py-1.5 border border-white/20">
@@ -213,6 +214,33 @@ export default function Dashboard() {
           </div>
         </div>
       </div>
+      
+      {/* ── PROMPT OPINION BADGE ─────────────────────────── */}
+<div className="bg-teal-950 py-4 px-6 text-center border-b border-teal-800">
+  <div className="flex items-center justify-center gap-4 flex-wrap">
+    <span className="text-teal-300 text-sm font-semibold">
+      🏆 Live on Prompt Opinion Platform
+    </span>
+    <span className="bg-teal-700 text-teal-100 text-xs px-3 py-1 rounded-full font-bold">
+      ✅ MCP Server Published
+    </span>
+    <span className="bg-teal-700 text-teal-100 text-xs px-3 py-1 rounded-full font-bold">
+      ✅ FHIR Context Supported
+    </span>
+    <span className="bg-teal-700 text-teal-100 text-xs px-3 py-1 rounded-full font-bold">
+      ✅ 3 Tools Available
+    </span>
+    
+      href="https://app.promptopinion.ai"
+      target="_blank"
+      rel="noopener noreferrer"
+      className="bg-white text-teal-900 font-black text-xs px-4 py-1.5 rounded-full
+                 hover:bg-teal-100 transition-all"
+    >
+      View on Platform →
+    </a>
+  </div>
+</div>
 
       {/* ── SECTION 2: PROBLEM STATEMENT ────────────────────── */}
       <div className="bg-gray-950 px-6 py-12 text-center">
