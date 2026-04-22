@@ -17,6 +17,23 @@ app.use(cors());
 app.use(morgan('dev'));
 app.use(express.json());
 
+// ── SHARP Context Middleware ────────────────────────
+app.use((req, res, next) => {
+  const patientId = req.headers['x-fhir-patient'] || req.headers['x-patient-id']
+  const fhirToken = req.headers['x-fhir-token'] || req.headers['authorization']
+  const tenantId = req.headers['x-tenant-id']
+
+  if (patientId) {
+    req.sharpContext = {
+      patientId,
+      fhirToken,
+      tenantId,
+      fhirBaseUrl: process.env.FHIR_BASE_URL
+    }
+  }
+  next()
+})
+
 // ── Routes ─────────────────────────────────────────
 app.use('/api/fhir', fhirRoutes);
 app.use('/api/handoff', handoffRoutes);
@@ -84,12 +101,20 @@ app.post('/mcp', async (req, res) => {
 
   if (method === 'tools/call') {
     const { name, arguments: args } = params
+
+    // Merge SHARP context with tool arguments
+    const patientId = args.patient_id ||
+                      req.sharpContext?.patientId ||
+                      args.patientId
+
     try {
       const axios = require('axios')
       const AI_URL = process.env.AI_AGENTS_URL || 'http://localhost:8000'
 
       if (name === 'generate_clinical_handoff') {
-        const result = await axios.post(`${AI_URL}/handoff`, { patient_id: args.patient_id })
+        const result = await axios.post(`${AI_URL}/handoff`, {
+          patient_id: patientId
+        })
         return res.json({
           jsonrpc: '2.0',
           result: { content: [{ type: 'text', text: JSON.stringify(result.data) }] },
@@ -98,7 +123,7 @@ app.post('/mcp', async (req, res) => {
       }
 
       if (name === 'get_patient_context') {
-        const result = await axios.get(`${AI_URL}/patient/${args.patient_id}/context`)
+        const result = await axios.get(`${AI_URL}/patient/${patientId}/context`)
         return res.json({
           jsonrpc: '2.0',
           result: { content: [{ type: 'text', text: JSON.stringify(result.data) }] },
@@ -106,9 +131,27 @@ app.post('/mcp', async (req, res) => {
         })
       }
 
+      if (name === 'get_patient_risk_assessment') {
+        const result = await axios.post(`${AI_URL}/handoff`, { patient_id: patientId })
+        return res.json({
+          jsonrpc: '2.0',
+          result: {
+            content: [{
+              type: 'text',
+              text: JSON.stringify({
+                patient_id: patientId,
+                urgency_level: result.data.urgency_level,
+                risk: result.data.risk
+              })
+            }]
+          },
+          id
+        })
+      }
+
       return res.json({
         jsonrpc: '2.0',
-        result: { content: [{ type: 'text', text: `Tool ${name} executed successfully` }] },
+        result: { content: [{ type: 'text', text: `Tool ${name} executed` }] },
         id
       })
     } catch (err) {
