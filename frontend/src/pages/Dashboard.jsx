@@ -241,6 +241,116 @@ export default function Dashboard() {
     </a>
   </div>
 </div>
+{/* ── PROMPT OPINION PROOF SECTION ────────────────── */}
+<div className="bg-white py-12 px-6 border-b border-gray-100">
+  <div className="max-w-5xl mx-auto">
+    <div className="text-center mb-8">
+      <h2 className="text-2xl font-black text-gray-900 mb-2">
+        🏆 Live on Prompt Opinion Platform
+      </h2>
+      <p className="text-gray-500">
+        CareRelay OS is published, discoverable, and invokable 
+        inside the Prompt Opinion ecosystem
+      </p>
+    </div>
+
+    <div className="grid md:grid-cols-3 gap-6 mb-8">
+      {[
+        {
+          icon: '🔌',
+          title: 'MCP Server Published',
+          desc: '3 tools registered and invokable by any agent in the Prompt Opinion marketplace',
+          badge: 'LIVE',
+          color: 'green'
+        },
+        {
+          icon: '🤝',
+          title: 'A2A Agent Active',
+          desc: 'CareRelay OS agent published with A2A enabled — callable by other agents on the platform',
+          badge: 'PUBLISHED',
+          color: 'blue'
+        },
+        {
+          icon: '🏥',
+          title: 'FHIR Context Supported',
+          desc: 'Full SHARP extension implemented — receives patient context directly from EHR sessions',
+          badge: 'VERIFIED',
+          color: 'purple'
+        },
+      ].map((item, i) => (
+        <div key={i} className="bg-gray-50 rounded-2xl p-6 border border-gray-100 text-center">
+          <div className="text-4xl mb-3">{item.icon}</div>
+          <div className={`inline-block px-3 py-1 rounded-full text-xs font-black mb-3
+            ${item.color === 'green' ? 'bg-green-100 text-green-700' :
+              item.color === 'blue' ? 'bg-blue-100 text-blue-700' :
+              'bg-purple-100 text-purple-700'}`}>
+            ● {item.badge}
+          </div>
+          <h3 className="font-black text-gray-900 mb-2">{item.title}</h3>
+          <p className="text-gray-600 text-sm">{item.desc}</p>
+        </div>
+      ))}
+    </div>
+
+    {/* Live demo evidence */}
+    <div className="bg-blue-950 rounded-2xl p-6">
+      <div className="flex items-center justify-between flex-wrap gap-4">
+        <div>
+          <p className="text-white font-black text-lg mb-1">
+            ✅ CareRelay OS is running inside Prompt Opinion right now
+          </p>
+          <p className="text-blue-300 text-sm">
+            Agent responds to clinical queries · Calls MCP tools · 
+            Processes FHIR data · Returns verified handoffs
+          </p>
+        </div>
+        <div className="flex gap-3">
+          
+            href="https://app.promptopinion.ai"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="bg-blue-400 hover:bg-blue-300 text-blue-950 font-black
+                       px-5 py-2.5 rounded-xl text-sm transition-all"
+          >
+            View on Platform →
+          </a>
+          
+            href="https://carerelay-os-production-2e3a.up.railway.app/api/mcp/health"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="bg-white/20 hover:bg-white/30 text-white font-bold
+                       px-5 py-2.5 rounded-xl text-sm border border-white/30 transition-all"
+          >
+            🔌 Live MCP Health
+          </a>
+        </div>
+      </div>
+
+      {/* MCP tools strip */}
+      <div className="mt-4 flex flex-wrap gap-2">
+        {[
+          'generate_clinical_handoff',
+          'get_patient_risk_assessment',
+          'get_patient_context'
+        ].map((tool, i) => (
+          <span key={i} className="bg-blue-800 text-blue-200 text-xs
+                                   px-3 py-1 rounded-full font-mono">
+            {tool}()
+          </span>
+        ))}
+        <span className="bg-green-800 text-green-200 text-xs px-3 py-1 rounded-full">
+          ✅ FHIR R4 Native
+        </span>
+        <span className="bg-purple-800 text-purple-200 text-xs px-3 py-1 rounded-full">
+          ✅ SHARP Context
+        </span>
+        <span className="bg-yellow-800 text-yellow-200 text-xs px-3 py-1 rounded-full">
+          ✅ A2A Enabled
+        </span>
+      </div>
+    </div>
+  </div>
+</div>
 
       {/* ── SECTION 2: PROBLEM STATEMENT ────────────────────── */}
       <div className="bg-gray-950 px-6 py-12 text-center">
