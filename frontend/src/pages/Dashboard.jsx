@@ -230,7 +230,7 @@ export default function Dashboard() {
     <span className="bg-teal-700 text-teal-100 text-xs px-3 py-1 rounded-full font-bold">
       ✅ 3 Tools Available
     </span>
-    
+
     <a
      href="https://app.promptopinion.ai"
               target="_blank"
@@ -307,6 +307,7 @@ export default function Dashboard() {
         </div>
         <div className="flex gap-3">
           
+          <a
             href="https://app.promptopinion.ai"
             target="_blank"
             rel="noopener noreferrer"
