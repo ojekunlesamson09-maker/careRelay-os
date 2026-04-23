@@ -317,6 +317,7 @@ export default function Dashboard() {
             View on Platform →
           </a>
           
+          <a
             href="https://carerelay-os-production-2e3a.up.railway.app/api/mcp/health"
             target="_blank"
             rel="noopener noreferrer"
