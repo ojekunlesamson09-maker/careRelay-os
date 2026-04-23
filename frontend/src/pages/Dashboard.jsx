@@ -232,13 +232,13 @@ export default function Dashboard() {
     </span>
     
       href="https://app.promptopinion.ai"
-      target="_blank"
-      rel="noopener noreferrer"
-      className="bg-white text-teal-900 font-black text-xs px-4 py-1.5 rounded-full
-                 hover:bg-teal-100 transition-all"
-    >
-      View on Platform →
-    </a>
+              target="_blank"
+              rel="noopener noreferrer"
+              className="bg-white text-teal-900 font-black text-xs px-4 py-1.5 rounded-full
+                         hover:bg-teal-100 transition-all"
+            >
+              View on Platform →
+            </a>
   </div>
 </div>
 {/* ── PROMPT OPINION PROOF SECTION ────────────────── */}
