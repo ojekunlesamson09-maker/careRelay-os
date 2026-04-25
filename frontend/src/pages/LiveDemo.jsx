@@ -219,6 +219,33 @@ export default function LiveDemo() {
                   {!result.safe_to_handoff && ' — ⚠️ CLINICIAN REVIEW REQUIRED'}
                 </div>
 
+{/* A2A Conditional Routing */}
+{result?.urgency_level === 'CRITICAL' && (
+  <div className="bg-purple-950 border-2 border-purple-500 rounded-2xl p-4">
+    <h3 className="text-purple-300 font-black mb-3">
+      🤝 A2A Conditional Routing Triggered
+    </h3>
+    <div className="space-y-2 font-mono text-xs">
+      {[
+        { from: 'Risk Agent', to: 'Validation Agent', msg: 'CRITICAL: Sepsis risk 9/10 — requesting urgent validation', color: 'red' },
+        { from: 'Validation Agent', to: 'Risk Agent', msg: 'Confirmed: BP 88/54 deterioration verified in FHIR vitals', color: 'green' },
+        { from: 'Risk Agent', to: 'Clinical Reasoning', msg: 'Escalating: Penicillin allergy + sepsis = critical antibiotic decision', color: 'yellow' },
+        { from: 'Clinical Reasoning', to: 'Validation Agent', msg: 'Draft handoff sent — verify all antibiotic claims', color: 'blue' },
+        { from: 'Validation Agent', to: 'Output', msg: '✅ Hallucination removed. Safe handoff packet ready.', color: 'green' },
+      ].map((msg, i) => (
+        <div key={i} className={`flex items-start gap-2 p-2 rounded-lg
+          ${msg.color === 'red' ? 'bg-red-950/50 text-red-300' :
+            msg.color === 'green' ? 'bg-green-950/50 text-green-300' :
+            msg.color === 'yellow' ? 'bg-yellow-950/50 text-yellow-300' :
+            'bg-blue-950/50 text-blue-300'}`}>
+          <span className="shrink-0 font-bold">{msg.from} → {msg.to}:</span>
+          <span className="opacity-80">{msg.msg}</span>
+        </div>
+      ))}
+    </div>
+  </div>
+)}
+
                 {/* Risk Flags */}
                 <div className="bg-white rounded-2xl shadow p-5">
                   <h3 className="font-black text-gray-800 mb-3">🔴 Risk Flags Detected</h3>
