@@ -229,7 +229,7 @@ export default function Dashboard() {
             ✅ 3 Tools Available
           </span>
           
-            href="https://app.promptopinion.ai"
+            </href="https://app.promptopinion.ai"
             target="_blank"
             rel="noopener noreferrer"
             className="bg-white text-teal-900 font-black text-xs px-4 py-1.5 rounded-full
