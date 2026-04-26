@@ -229,20 +229,12 @@ export default function Dashboard() {
             ✅ 3 Tools Available
           </span>
           
-            </href="https://app.promptopinion.ai"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="bg-white text-teal-900 font-black text-xs px-4 py-1.5 rounded-full
-                       hover:bg-teal-100 transition-all"
-          >
-          
-           <a 
+            <a
             href="https://app.promptopinion.ai"
             target="_blank"
             rel="noopener noreferrer"
             className="bg-white text-teal-900 font-black text-xs px-4 py-1.5 rounded-full hover:bg-teal-100 transition-all"
           >
-            
             Open in Prompt Opinion Marketplace →
           </a>
         </div>
@@ -355,7 +347,8 @@ export default function Dashboard() {
                 </p>
               </div>
               <div className="flex gap-3 flex-wrap">
-                
+
+                <a
                   href="https://app.promptopinion.ai"
                   target="_blank"
                   rel="noopener noreferrer"
@@ -365,6 +358,7 @@ export default function Dashboard() {
                   Open in Prompt Opinion Marketplace →
                 </a>
                 
+                <a
                   href="https://carerelay-os-production-2e3a.up.railway.app/api/mcp/health"
                   target="_blank"
                   rel="noopener noreferrer"
