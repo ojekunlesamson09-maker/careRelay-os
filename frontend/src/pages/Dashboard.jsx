@@ -235,6 +235,14 @@ export default function Dashboard() {
             className="bg-white text-teal-900 font-black text-xs px-4 py-1.5 rounded-full
                        hover:bg-teal-100 transition-all"
           >
+          
+           <a 
+            href="https://app.promptopinion.ai"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="bg-white text-teal-900 font-black text-xs px-4 py-1.5 rounded-full hover:bg-teal-100 transition-all"
+          >
+            
             Open in Prompt Opinion Marketplace →
           </a>
         </div>
