@@ -394,6 +394,32 @@ export default function Dashboard() {
         </div>
       </div>
 
+      {/* Real Platform Screenshots */}
+<div className="mt-6">
+  <p className="text-center text-gray-500 text-sm font-semibold mb-4">
+    📸 Real screenshots from Prompt Opinion Platform
+  </p>
+  <div className="grid md:grid-cols-3 gap-4">
+    {[
+      { src: '/screenshots/mcp-server.png', label: '🔌 MCP Server Published', desc: 'CareRelay OS listed in Marketplace MCP Servers' },
+      { src: '/screenshots/agent-listing.png', label: '🤝 A2A Agent Published', desc: 'Published · A2A Enabled · Workspace, Patient, Group' },
+      { src: '/screenshots/live-demo.png', label: '⚡ Agent Running Live', desc: 'CareRelay OS generating clinical handoff inside platform' },
+    ].map((shot, i) => (
+      <div key={i} className="bg-gray-950 rounded-xl overflow-hidden border border-gray-700">
+        <img
+          src={shot.src}
+          alt={shot.label}
+          className="w-full object-cover"
+        />
+        <div className="p-3">
+          <p className="text-white font-black text-xs">{shot.label}</p>
+          <p className="text-gray-400 text-xs mt-1">{shot.desc}</p>
+        </div>
+      </div>
+    ))}
+  </div>
+</div>
+
       {/* ── SECTION 2: PROBLEM STATEMENT ────────────────────── */}
       <div className="bg-gray-950 px-6 py-12 text-center">
         <div className="max-w-3xl mx-auto">
