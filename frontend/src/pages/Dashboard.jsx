@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
+import ScreenshotGallery from '../components/ScreenshotGallery'
 import Navbar from '../components/Navbar'
 import MetricsDashboard from '../components/MetricsDashboard'
 import BeforeAfter from '../components/BeforeAfter'
@@ -107,8 +108,6 @@ function MiniDemo() {
 }
 
 export default function Dashboard() {
-  const navigate = useNavigate()
-
   return (
     <div className="min-h-screen bg-white">
       <Navbar />
@@ -204,6 +203,7 @@ export default function Dashboard() {
             <h2 className="text-2xl font-black text-gray-900 mb-2">🏆 Live on Prompt Opinion Platform</h2>
             <p className="text-gray-500 text-sm sm:text-base">CareRelay OS is published, discoverable, and invokable inside the Prompt Opinion ecosystem</p>
           </div>
+
           <div className="grid sm:grid-cols-3 gap-4 mb-8">
             {[
               { icon: '🔌', title: 'MCP Server Published', desc: '3 tools registered and invokable by any agent in the Prompt Opinion marketplace', badge: 'LIVE', color: 'green' },
@@ -223,25 +223,8 @@ export default function Dashboard() {
             ))}
           </div>
 
-          {/* Screenshots */}
-          <div className="mb-6">
-            <p className="text-center text-gray-500 text-sm font-semibold mb-4">📸 Real screenshots from Prompt Opinion Platform</p>
-            <div className="grid sm:grid-cols-3 gap-4">
-              {[
-                { src: '/screenshots/mcp-server.png', label: '🔌 MCP Server Published', desc: 'CareRelay OS listed in Marketplace MCP Servers' },
-                { src: '/screenshots/agent-listing.png', label: '🤝 A2A Agent Published', desc: 'Published · A2A Enabled · Workspace, Patient, Group' },
-                { src: '/screenshots/live-demo.png', label: '⚡ Agent Running Live', desc: 'CareRelay OS generating clinical handoff inside platform' },
-              ].map((shot, i) => (
-                <div key={i} className="bg-gray-950 rounded-xl overflow-hidden border border-gray-700">
-                  <img src={shot.src} alt={shot.label} className="w-full object-cover" />
-                  <div className="p-3">
-                    <p className="text-white font-black text-xs">{shot.label}</p>
-                    <p className="text-gray-400 text-xs mt-1">{shot.desc}</p>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
+          {/* ✅ SCREENSHOT GALLERY — clickable lightbox */}
+          <ScreenshotGallery />
 
           {/* Evidence Cards */}
           <div className="grid sm:grid-cols-2 gap-4 mb-6">

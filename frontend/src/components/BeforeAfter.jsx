@@ -1,25 +1,23 @@
 export default function BeforeAfter() {
   return (
-    <div className="py-16 px-6 bg-white">
+    <div className="py-12 sm:py-16 px-4 sm:px-6 bg-white">
       <div className="max-w-5xl mx-auto">
-        <div className="text-center mb-10">
-          <h2 className="text-3xl font-black text-gray-900 mb-3">
-            The Difference CareRelay Makes
-          </h2>
-          <p className="text-gray-600">Same patient. Same shift change. Completely different outcome.</p>
+        <div className="text-center mb-8">
+          <h2 className="text-2xl sm:text-3xl font-black text-gray-900 mb-3">The Difference CareRelay Makes</h2>
+          <p className="text-gray-600 text-sm sm:text-base">Same patient. Same shift change. Completely different outcome.</p>
         </div>
 
-        <div className="grid md:grid-cols-2 gap-6">
+        <div className="grid sm:grid-cols-2 gap-6">
           {/* Before */}
-          <div className="bg-red-50 border-2 border-red-200 rounded-2xl p-6">
+          <div className="bg-red-50 border-2 border-red-200 rounded-2xl p-5 sm:p-6">
             <div className="flex items-center gap-3 mb-4">
               <span className="text-2xl">😰</span>
               <div>
-                <h3 className="font-black text-red-800 text-lg">Without CareRelay</h3>
-                <p className="text-red-600 text-sm">Traditional handoff process</p>
+                <h3 className="font-black text-red-800 text-base sm:text-lg">Without CareRelay</h3>
+                <p className="text-red-600 text-xs sm:text-sm">Traditional handoff process</p>
               </div>
             </div>
-            <ul className="space-y-3">
+            <ul className="space-y-2 sm:space-y-3">
               {[
                 'Nurse spends 12+ minutes writing notes from memory',
                 'Penicillin allergy buried in page 3 of chart',
@@ -30,27 +28,27 @@ export default function BeforeAfter() {
                 'Critical Warfarin interaction missed',
                 'Patient deteriorates during shift change',
               ].map((item, i) => (
-                <li key={i} className="flex items-start gap-2 text-sm text-red-700">
+                <li key={i} className="flex items-start gap-2 text-xs sm:text-sm text-red-700">
                   <span className="text-red-500 shrink-0 mt-0.5">✗</span>
                   {item}
                 </li>
               ))}
             </ul>
             <div className="mt-4 bg-red-100 rounded-xl p-3 text-center">
-              <p className="text-red-800 font-black">Result: Patient harm risk HIGH</p>
+              <p className="text-red-800 font-black text-sm">Result: Patient harm risk HIGH</p>
             </div>
           </div>
 
           {/* After */}
-          <div className="bg-green-50 border-2 border-green-200 rounded-2xl p-6">
+          <div className="bg-green-50 border-2 border-green-200 rounded-2xl p-5 sm:p-6">
             <div className="flex items-center gap-3 mb-4">
               <span className="text-2xl">✅</span>
               <div>
-                <h3 className="font-black text-green-800 text-lg">With CareRelay OS</h3>
-                <p className="text-green-600 text-sm">AI-powered handoff in 90 seconds</p>
+                <h3 className="font-black text-green-800 text-base sm:text-lg">With CareRelay OS</h3>
+                <p className="text-green-600 text-xs sm:text-sm">AI-powered handoff in 90 seconds</p>
               </div>
             </div>
-            <ul className="space-y-3">
+            <ul className="space-y-2 sm:space-y-3">
               {[
                 '4-agent AI reads entire FHIR record in seconds',
                 '🚨 PENICILLIN ALLERGY flagged as CRITICAL immediately',
@@ -61,14 +59,14 @@ export default function BeforeAfter() {
                 '💊 Warfarin + infection interaction flagged automatically',
                 'Clinician reviews, approves, and sends in 90 seconds',
               ].map((item, i) => (
-                <li key={i} className="flex items-start gap-2 text-sm text-green-700">
+                <li key={i} className="flex items-start gap-2 text-xs sm:text-sm text-green-700">
                   <span className="text-green-500 shrink-0 mt-0.5">✓</span>
                   {item}
                 </li>
               ))}
             </ul>
             <div className="mt-4 bg-green-100 rounded-xl p-3 text-center">
-              <p className="text-green-800 font-black">Result: Safe verified handoff ✅</p>
+              <p className="text-green-800 font-black text-sm">Result: Safe verified handoff ✅</p>
             </div>
           </div>
         </div>
