@@ -328,24 +328,45 @@ export default function LiveDemo() {
                   </p>
                 </div>
 
-                {/* Hallucination Caught */}
-                <div className="bg-slate-900 border-l-4 border-red-600 rounded-xl p-4">
-                  <p className="text-red-400 font-bold text-sm font-mono mb-3">
-                    HALLUCINATION_DETECTED — ValidatorAgent
-                  </p>
-                  <div className="bg-slate-950 rounded-lg p-3 mb-3 border border-slate-800">
-                    <p className="text-slate-500 text-xs font-mono line-through">
-                      REMOVED: "Patient on Amoxicillin 500mg for infection treatment."
-                    </p>
-                  </div>
-                  <p className="text-green-400 text-xs font-mono">
-                    source_check: no MedicationRequest for Amoxicillin in FHIR R4
-                  </p>
-                  <p className="text-slate-400 text-xs mt-2 leading-relaxed">
-                    Amoxicillin is a penicillin-class antibiotic. This patient has documented
-                    penicillin anaphylaxis. This claim was removed before any clinician saw it.
-                  </p>
-                </div>
+                {/* HALLUCINATION CAUGHT — ALARM MOMENT */}
+{result.validation?.hallucination_caught && (
+  <div className="rounded-xl overflow-hidden border-2 border-red-600">
+    {/* alarm header */}
+    <div className="bg-red-600 px-4 py-3 flex items-center gap-3">
+      <span className="w-3 h-3 rounded-full bg-white animate-pulse shrink-0" />
+      <p className="text-white font-black text-sm font-mono tracking-wide">
+        HALLUCINATION_DETECTED — ValidatorAgent
+      </p>
+    </div>
+    {/* body */}
+    <div className="bg-slate-900 p-4 space-y-3">
+      <div className="bg-slate-950 rounded-lg p-3 border border-red-900">
+        <p className="text-slate-500 text-xs font-mono mb-1">// draft claim from ReasoningAgent:</p>
+        <p className="text-red-400 text-xs font-mono line-through opacity-70">
+          "Patient on Amoxicillin 500mg for infection treatment."
+        </p>
+      </div>
+      <div className="bg-slate-950 rounded-lg p-3 border border-green-900">
+        <p className="text-slate-500 text-xs font-mono mb-1">// fhir_source_check result:</p>
+        <p className="text-green-400 text-xs font-mono">
+          MedicationRequest query → 0 results for Amoxicillin
+        </p>
+        <p className="text-green-400 text-xs font-mono">
+          action: CLAIM_REMOVED before clinician delivery
+        </p>
+      </div>
+      <div className="bg-red-950/40 rounded-lg p-3 border border-red-900/50">
+        <p className="text-red-300 text-xs font-bold mb-1">Why this matters:</p>
+        <p className="text-slate-400 text-xs leading-relaxed">
+          Amoxicillin is a penicillin-class antibiotic. This patient has documented
+          penicillin anaphylaxis. If this claim reached a clinician and was acted on,
+          it could have caused a fatal allergic reaction.
+          <span className="text-white font-bold"> CareRelay stopped it.</span>
+        </p>
+      </div>
+    </div>
+  </div>
+)}
 
                 {/* Risk Flags */}
                 <div className="bg-slate-900 rounded-xl border border-slate-700 p-4">
