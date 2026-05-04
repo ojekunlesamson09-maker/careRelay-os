@@ -1,9 +1,5 @@
 import { useState, useEffect, useRef } from 'react'
 import Navbar from '../components/Navbar'
-import {
-  AlertTriangle, Shield, CheckCircle,
-  AlertCircle, Clock, Activity, Search
-} from 'lucide-react'
 
 const SAMPLE_PATIENT = {
   name: 'Margaret Chen',
@@ -40,19 +36,19 @@ const A2A_SCRIPT = [
 ]
 
 const LEVEL_CONFIG = {
-  INFO:     { labelClass: 'text-slate-500',  msgClass: 'text-slate-400',          label: 'INFO' },
-  WARN:     { labelClass: 'text-amber-500',  msgClass: 'text-amber-400',          label: 'WARN' },
-  CRITICAL: { labelClass: 'text-red-500',    msgClass: 'text-red-400 font-bold',  label: 'CRIT' },
-  A2A:      { labelClass: 'text-blue-500',   msgClass: 'text-blue-400',           label: 'A2A'  },
-  QUERY:    { labelClass: 'text-sky-500',    msgClass: 'text-sky-400',            label: 'QURY' },
-  SUCCESS:  { labelClass: 'text-green-500',  msgClass: 'text-green-400 font-bold',label: 'DONE' },
+  INFO:     { labelClass: 'text-slate-500', msgClass: 'text-slate-400',         label: 'INFO' },
+  WARN:     { labelClass: 'text-amber-500', msgClass: 'text-amber-400',         label: 'WARN' },
+  CRITICAL: { labelClass: 'text-red-500',   msgClass: 'text-red-400 font-bold', label: 'CRIT' },
+  A2A:      { labelClass: 'text-blue-500',  msgClass: 'text-blue-400',          label: 'A2A'  },
+  QUERY:    { labelClass: 'text-sky-500',   msgClass: 'text-sky-400',           label: 'QURY' },
+  SUCCESS:  { labelClass: 'text-green-500', msgClass: 'text-green-400 font-bold', label: 'DONE' },
 }
 
 const AGENT_CONFIG = {
-  ContextAgent:   { color: 'text-blue-400',   short: 'CTX' },
-  RiskAgent:      { color: 'text-red-400',    short: 'RSK' },
-  ReasoningAgent: { color: 'text-amber-400',  short: 'RSN' },
-  ValidatorAgent: { color: 'text-green-400',  short: 'VAL' },
+  ContextAgent:   { color: 'text-blue-400',  short: 'CTX' },
+  RiskAgent:      { color: 'text-red-400',   short: 'RSK' },
+  ReasoningAgent: { color: 'text-amber-400', short: 'RSN' },
+  ValidatorAgent: { color: 'text-green-400', short: 'VAL' },
 }
 
 const AGENT_STEPS = [
@@ -133,10 +129,10 @@ function getMockResult(p) {
       safety_score: 45,
       hallucination_caught: true,
       validated_handoff: {
-        situation: `${p.name}, ${p.age}F — CRITICAL. BP 88/54 falling, sepsis suspected. Penicillin anaphylaxis documented.`,
-        background: `CAP with DM2, HTN. On Warfarin. Admitted 6hrs, poor response. Cultures pending. INR not checked this admission — STAT required.`,
-        assessment: `Probable septic shock. NO penicillin/beta-lactams. Warfarin risk elevated. New confusion: rule out hypoglycemia or septic encephalopathy.`,
-        recommendation: `1. Sepsis protocol NOW. 2. Verify antibiotics — NO penicillin. 3. Stat INR + glucose. 4. Await cultures before changing antibiotics. 5. Neuro assessment.`
+        situation:      `${p.name}, ${p.age}F — CRITICAL. BP 88/54 falling, sepsis suspected. Penicillin anaphylaxis documented.`,
+        background:     `CAP with DM2, HTN. On Warfarin. Admitted 6hrs, poor response. Cultures pending. INR not checked — STAT required.`,
+        assessment:     `Probable septic shock. NO penicillin/beta-lactams. Warfarin risk elevated. New confusion: rule out hypoglycemia or encephalopathy.`,
+        recommendation: `1. Sepsis protocol NOW. 2. NO penicillin antibiotics. 3. Stat INR + glucose. 4. Await cultures before changing antibiotics. 5. Neuro assessment.`
       }
     },
     pipeline_steps: [
@@ -168,14 +164,11 @@ export default function LiveDemo() {
       chatRef.current.scrollTop = chatRef.current.scrollHeight
   }, [messages])
 
-  // cleanup timers on unmount
   useEffect(() => () => timersRef.current.forEach(clearTimeout), [])
 
   const generateHandoff = () => {
-    // clear any previous timers
     timersRef.current.forEach(clearTimeout)
     timersRef.current = []
-
     setLoading(true)
     setResult(null)
     setMessages([])
@@ -187,27 +180,19 @@ export default function LiveDemo() {
       timersRef.current.push(t)
     }
 
-    // agent step progression
     push(() => setAgentStep(1),  500)
     push(() => setAgentStep(4),  3300)
     push(() => setAgentStep(9),  8200)
     push(() => setAgentStep(13), 12000)
     push(() => setAgentStep(18), 17500)
 
-    // live log messages
     A2A_SCRIPT.forEach(({ at, agent, level, msg }) => {
       push(() => {
         const ts = new Date().toLocaleTimeString('en-GB', { hour12: false })
-        setMessages(prev => [...prev, {
-          agent: agent || '',
-          level: level || 'INFO',
-          msg:   msg   || '',
-          ts
-        }])
+        setMessages(prev => [...prev, { agent, level, msg, ts }])
       }, at)
     })
 
-    // final result
     push(() => {
       setResult(getMockResult(patient))
       setLoading(false)
@@ -218,7 +203,6 @@ export default function LiveDemo() {
     <div className="min-h-screen bg-slate-950">
       <Navbar />
 
-      {/* HERO */}
       <div className="bg-slate-900 border-b border-slate-800 px-4 sm:px-6 py-8 text-center">
         <h1 className="text-2xl sm:text-3xl md:text-4xl font-black text-white mb-2">
           Live Agent Pipeline
@@ -232,18 +216,16 @@ export default function LiveDemo() {
       <div className="max-w-6xl mx-auto px-4 sm:px-6 py-6 sm:py-10">
         <div className="grid lg:grid-cols-2 gap-6">
 
-          {/* ── INPUT PANEL ── */}
+          {/* INPUT */}
           <div className="bg-slate-900 rounded-xl border border-slate-700 p-4 sm:p-6">
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-sm font-bold text-white font-mono">// patient_input</h2>
-              <button
-                onClick={() => setPatient(SAMPLE_PATIENT)}
+              <button onClick={() => setPatient(SAMPLE_PATIENT)}
                 className="text-xs bg-slate-700 text-slate-300 px-3 py-1.5 rounded-lg
                            hover:bg-slate-600 font-mono border border-slate-600">
                 load_sample()
               </button>
             </div>
-
             <div className="space-y-3">
               {[
                 { label: 'name',         field: 'name',         type: 'text'     },
@@ -259,41 +241,33 @@ export default function LiveDemo() {
                 <div key={field}>
                   <label className="block text-xs font-mono text-slate-400 mb-1">{label}:</label>
                   {type === 'textarea' ? (
-                    <textarea
-                      value={patient[field]}
+                    <textarea value={patient[field]}
                       onChange={e => handleChange(field, e.target.value)}
                       rows={2}
                       className="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2
                                  text-xs text-slate-200 font-mono focus:outline-none
-                                 focus:ring-1 focus:ring-blue-500 resize-none"
-                    />
+                                 focus:ring-1 focus:ring-blue-500 resize-none" />
                   ) : (
-                    <input
-                      type="text"
-                      value={patient[field]}
+                    <input type="text" value={patient[field]}
                       onChange={e => handleChange(field, e.target.value)}
                       className="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2
                                  text-xs text-slate-200 font-mono focus:outline-none
-                                 focus:ring-1 focus:ring-blue-500"
-                    />
+                                 focus:ring-1 focus:ring-blue-500" />
                   )}
                 </div>
               ))}
             </div>
-
-            <button
-              onClick={generateHandoff}
-              disabled={loading}
+            <button onClick={generateHandoff} disabled={loading}
               className="w-full mt-5 bg-blue-600 hover:bg-blue-500 disabled:opacity-40
                          text-white font-bold py-3 rounded-lg transition-all text-sm font-mono">
               {loading ? '// running pipeline...' : '> generate_clinical_handoff()'}
             </button>
           </div>
 
-          {/* ── OUTPUT PANEL ── */}
+          {/* OUTPUT */}
           <div className="space-y-4">
 
-            {/* Pipeline + Log */}
+            {/* Pipeline Panel */}
             <div className="bg-slate-900 rounded-xl border border-slate-700 p-4">
               <div className="flex items-center justify-between mb-3">
                 <p className="text-white font-bold text-sm font-mono">// agent_pipeline</p>
@@ -308,7 +282,7 @@ export default function LiveDemo() {
               <AgentStatusBar step={agentStep} />
 
               {/* FHIR strip */}
-              <div className="bg-slate-950 rounded-lg px-3 py-2 mb-3 border border-slate-800 font-mono text-xs overflow-x-auto">
+              <div className="bg-slate-950 rounded-lg px-3 py-2 mb-3 border border-slate-800 font-mono text-xs overflow-x-auto whitespace-nowrap">
                 <span className="text-slate-600">fhir: </span>
                 {['Patient','Observation','MedicationRequest','AllergyIntolerance'].map((r, i) => (
                   <span key={i}>
@@ -320,8 +294,7 @@ export default function LiveDemo() {
 
               {/* LOG */}
               <p className="text-slate-600 text-xs font-mono mb-1">// a2a_log</p>
-              <div
-                ref={chatRef}
+              <div ref={chatRef}
                 className="bg-slate-950 rounded-lg p-3 h-56 sm:h-64 overflow-y-auto
                            space-y-1 scroll-smooth border border-slate-800">
                 {messages.length === 0 && !loading && (
@@ -334,16 +307,14 @@ export default function LiveDemo() {
                     // initializing agent network...
                   </p>
                 )}
-                {messages.map((m, i) => (
-                  <LogLine key={i} m={m} />
-                ))}
+                {messages.map((m, i) => <LogLine key={i} m={m} />)}
                 {loading && messages.length > 0 && (
                   <p className="text-slate-600 font-mono text-xs animate-pulse">▋</p>
                 )}
               </div>
             </div>
 
-            {/* ── RESULTS ── */}
+            {/* RESULTS */}
             {result && (
               <div className="space-y-4">
 
@@ -359,12 +330,9 @@ export default function LiveDemo() {
 
                 {/* Hallucination Caught */}
                 <div className="bg-slate-900 border-l-4 border-red-600 rounded-xl p-4">
-                  <div className="flex items-center gap-2 mb-3">
-                    <Shield size={15} className="text-red-400 shrink-0" />
-                    <p className="text-red-400 font-bold text-sm font-mono">
-                      HALLUCINATION_DETECTED — ValidatorAgent
-                    </p>
-                  </div>
+                  <p className="text-red-400 font-bold text-sm font-mono mb-3">
+                    HALLUCINATION_DETECTED — ValidatorAgent
+                  </p>
                   <div className="bg-slate-950 rounded-lg p-3 mb-3 border border-slate-800">
                     <p className="text-slate-500 text-xs font-mono line-through">
                       REMOVED: "Patient on Amoxicillin 500mg for infection treatment."
@@ -381,29 +349,18 @@ export default function LiveDemo() {
 
                 {/* Risk Flags */}
                 <div className="bg-slate-900 rounded-xl border border-slate-700 p-4">
-                  <div className="flex items-center gap-2 mb-3">
-                    <AlertTriangle size={14} className="text-amber-400 shrink-0" />
-                    <h3 className="font-bold text-white text-sm">Risk Assessment</h3>
-                  </div>
+                  <p className="font-bold text-white text-sm mb-3">Risk Assessment</p>
                   <div className="space-y-2">
                     {result.risk?.risk_flags?.map((flag, i) => (
                       <div key={i} className={`rounded-lg p-3 border-l-2
                         ${flag.severity === 'CRITICAL'
                           ? 'bg-red-950/30 border-red-600'
                           : 'bg-amber-950/30 border-amber-600'}`}>
-                        <div className="flex items-start gap-2">
-                          {flag.severity === 'CRITICAL'
-                            ? <AlertCircle size={12} className="text-red-400 shrink-0 mt-0.5" />
-                            : <AlertTriangle size={12} className="text-amber-400 shrink-0 mt-0.5" />
-                          }
-                          <div className="min-w-0">
-                            <p className={`text-xs font-semibold break-words
-                              ${flag.severity === 'CRITICAL' ? 'text-red-300' : 'text-amber-300'}`}>
-                              [{flag.severity}] {flag.flag}
-                            </p>
-                            <p className="text-slate-500 text-xs mt-1">rec: {flag.recommendation}</p>
-                          </div>
-                        </div>
+                        <p className={`text-xs font-semibold
+                          ${flag.severity === 'CRITICAL' ? 'text-red-300' : 'text-amber-300'}`}>
+                          [{flag.severity}] {flag.flag}
+                        </p>
+                        <p className="text-slate-500 text-xs mt-1">rec: {flag.recommendation}</p>
                       </div>
                     ))}
                   </div>
@@ -411,10 +368,9 @@ export default function LiveDemo() {
 
                 {/* SBAR */}
                 <div className="bg-slate-900 rounded-xl border border-slate-700 p-4">
-                  <div className="flex items-center gap-2 mb-3">
-                    <CheckCircle size={14} className="text-green-400 shrink-0" />
-                    <h3 className="font-bold text-white text-sm">Verified SBAR Handoff</h3>
-                    <span className="ml-auto text-xs text-green-600 font-mono">fhir_verified</span>
+                  <div className="flex items-center justify-between mb-3">
+                    <p className="font-bold text-white text-sm">Verified SBAR Handoff</p>
+                    <span className="text-xs text-green-600 font-mono">fhir_verified</span>
                   </div>
                   {['situation','background','assessment','recommendation'].map((key, i) => (
                     <div key={key} className={`border-l-2 pl-3 py-2 mb-3
@@ -432,10 +388,7 @@ export default function LiveDemo() {
 
                 {/* Priority Items */}
                 <div className="bg-slate-900 rounded-xl border border-slate-700 p-4">
-                  <div className="flex items-center gap-2 mb-3">
-                    <Activity size={14} className="text-blue-400 shrink-0" />
-                    <h3 className="font-bold text-white text-sm">Priority Actions</h3>
-                  </div>
+                  <p className="font-bold text-white text-sm mb-3">Priority Actions</p>
                   <ul className="space-y-2">
                     {result.handoff?.priority_items?.map((item, i) => (
                       <li key={i} className="flex gap-2 text-xs sm:text-sm text-slate-300">
@@ -448,14 +401,11 @@ export default function LiveDemo() {
 
                 {/* Missing Info */}
                 <div className="bg-amber-950/20 rounded-xl border border-amber-900/50 p-4">
-                  <div className="flex items-center gap-2 mb-2">
-                    <Search size={14} className="text-amber-400 shrink-0" />
-                    <h3 className="font-bold text-amber-400 text-sm">Missing Critical Data</h3>
-                  </div>
+                  <p className="font-bold text-amber-400 text-sm mb-2">Missing Critical Data</p>
                   <ul className="space-y-1">
                     {result.risk?.missing_critical_info?.map((item, i) => (
-                      <li key={i} className="flex items-start gap-2 text-xs sm:text-sm text-amber-300">
-                        <Clock size={12} className="shrink-0 mt-0.5" />
+                      <li key={i} className="text-xs sm:text-sm text-amber-300 flex gap-2">
+                        <span className="shrink-0">—</span>
                         <span>{item}</span>
                       </li>
                     ))}
@@ -464,10 +414,7 @@ export default function LiveDemo() {
 
                 {/* Human in the Loop */}
                 <div className="bg-slate-900 rounded-xl border border-blue-800 p-4">
-                  <div className="flex items-center gap-2 mb-2">
-                    <Shield size={14} className="text-blue-400 shrink-0" />
-                    <h3 className="font-bold text-white text-sm">Clinician Review Required</h3>
-                  </div>
+                  <p className="font-bold text-white text-sm mb-2">Clinician Review Required</p>
                   <p className="text-xs sm:text-sm text-slate-400 mb-4">
                     CareRelay OS does not transmit handoffs autonomously.
                     A clinician must review and approve before sending.
@@ -483,15 +430,13 @@ export default function LiveDemo() {
                     </div>
                   ) : (
                     <div className="flex flex-col sm:flex-row gap-3">
-                      <button
-                        onClick={() => setApproved(true)}
+                      <button onClick={() => setApproved(true)}
                         className="flex-1 bg-green-700 hover:bg-green-600 text-white
                                    font-bold py-3 rounded-lg transition-all text-sm">
                         Approve & Transmit
                       </button>
-                      <button
-                        className="flex-1 bg-slate-700 hover:bg-slate-600 text-slate-200
-                                   font-bold py-3 rounded-lg transition-all text-sm">
+                      <button className="flex-1 bg-slate-700 hover:bg-slate-600 text-slate-200
+                                         font-bold py-3 rounded-lg transition-all text-sm">
                         Edit Before Sending
                       </button>
                     </div>
@@ -503,9 +448,8 @@ export default function LiveDemo() {
                   <p className="text-white font-bold text-sm mb-3 font-mono">// execution_summary</p>
                   <div className="space-y-2">
                     {result.pipeline_steps?.map((step, i) => (
-                      <div key={i}
-                        className="flex justify-between items-center bg-slate-950
-                                   rounded-lg px-3 py-2 border border-slate-800">
+                      <div key={i} className="flex justify-between items-center bg-slate-950
+                                              rounded-lg px-3 py-2 border border-slate-800">
                         <span className="text-xs font-mono text-slate-400 truncate mr-2">
                           {step.agent || step.step}
                         </span>
@@ -517,7 +461,7 @@ export default function LiveDemo() {
                             </span>
                           )}
                           <span className="font-mono text-green-500 text-xs">{step.duration_ms}ms</span>
-                          <CheckCircle size={12} className="text-green-500 shrink-0" />
+                          <span className="text-green-500 text-xs">✓</span>
                         </div>
                       </div>
                     ))}
