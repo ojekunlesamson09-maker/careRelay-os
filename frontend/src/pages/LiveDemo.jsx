@@ -1,5 +1,10 @@
 import { useState, useEffect, useRef } from 'react'
 import Navbar from '../components/Navbar'
+import {
+  AlertTriangle, Shield, Brain, Microscope,
+  Radio, CheckCircle, AlertCircle, Clock,
+  ArrowRight, Activity, Search, Pill
+} from 'lucide-react'
 
 const SAMPLE_PATIENT = {
   name: 'Margaret Chen',
@@ -7,91 +12,79 @@ const SAMPLE_PATIENT = {
   gender: 'Female',
   diagnosis: 'Community-acquired pneumonia, Type 2 Diabetes, Hypertension',
   medications: 'Lisinopril 10mg, Metformin 1000mg, Warfarin 5mg',
-  vitals: 'BP 88/54 (↓FALLING), SpO2 91%, Temp 39.2°C, HR 118bpm, RR 24',
+  vitals: 'BP 88/54 (FALLING), SpO2 91%, Temp 39.2C, HR 118bpm, RR 24',
   allergies: 'PENICILLIN (anaphylaxis), Sulfa drugs',
   notes: 'Admitted 6hrs ago with productive cough and fever. Responding poorly to initial treatment. Blood cultures pending x2. Chest CT ordered but not yet done. Family reports increased confusion since yesterday. Last INR not checked this admission.',
   pending_labs: 'Blood cultures x2, Chest CT, INR level, BMP, Procalcitonin'
 }
 
 const A2A_SCRIPT = [
-  { at: 500,   from: '🧠 Context Agent',   to: 'FHIR R4 Server',     type: 'fetch',    msg: 'Fetching: Patient demographics (FHIR R4)... status: found' },
-  { at: 1200,  from: '🧠 Context Agent',   to: 'FHIR R4 Server',     type: 'fetch',    msg: 'Fetching: Observation/vitals (FHIR R4)... status: 6 records found' },
-  { at: 1900,  from: '🧠 Context Agent',   to: 'FHIR R4 Server',     type: 'fetch',    msg: 'Fetching: MedicationRequest (FHIR R4)... status: 3 records found' },
-  { at: 2600,  from: '🧠 Context Agent',   to: 'FHIR R4 Server',     type: 'fetch',    msg: 'Fetching: AllergyIntolerance (FHIR R4)... status: 2 records found' },
-  { at: 3300,  from: '🧠 Context Agent',   to: '⚠️ Risk Agent',      type: 'a2a',      msg: 'I have unified the patient context. Vitals, meds, allergies packaged. Passing to you now.' },
-  { at: 4500,  from: '⚠️ Risk Agent',      to: '🧠 Context Agent',   type: 'query',    msg: 'I need to verify something. The medication list — can you confirm no penicillin-class drugs are active?' },
-  { at: 5800,  from: '🧠 Context Agent',   to: '⚠️ Risk Agent',      type: 'response', msg: 'Confirmed. MedicationRequest records: Lisinopril, Metformin, Warfarin only. No penicillin class active.' },
-  { at: 6800,  from: '⚠️ Risk Agent',      to: 'SYSTEM',             type: 'pause',    msg: '⏸ Rechecking vitals trend... BP was 102/68 at admission, now 88/54. Trajectory is falling.' },
-  { at: 7500,  from: '⚠️ Risk Agent',      to: 'SYSTEM',             type: 'confidence', msg: '📊 Confidence: 0.34 → analyzing vitals trajectory and allergy records...' },
-  { at: 8200,  from: '⚠️ Risk Agent',      to: '🔬 Reasoning Agent', type: 'alert',    msg: '🚨 CRITICAL ESCALATION: I detect sepsis risk 9/10. BP falling + fever + tachycardia + PENICILLIN ALLERGY on file.' },
-  { at: 9600,  from: '🔬 Reasoning Agent', to: '⚠️ Risk Agent',      type: 'query',    msg: 'I need allergy severity before I write the SBAR. What is the reaction type for penicillin?' },
-  { at: 10800, from: '⚠️ Risk Agent',      to: '🔬 Reasoning Agent', type: 'response', msg: 'AllergyIntolerance FHIR record confirms: Penicillin → ANAPHYLAXIS (criticality: high). Sulfa → rash only.' },
-  { at: 11500, from: '🔬 Reasoning Agent', to: 'SYSTEM',             type: 'confidence', msg: '📊 Confidence: 0.34 → 0.67 → grounding all SBAR claims in FHIR sources...' },
-  { at: 12000, from: '🔬 Reasoning Agent', to: '🛡️ Validator Agent', type: 'a2a',      msg: 'I have generated the SBAR. Sending draft for hallucination check before any clinician sees this.' },
-  { at: 13500, from: '🛡️ Validator Agent', to: '🔬 Reasoning Agent', type: 'caught',   msg: '❌ HALLUCINATION CAUGHT: I found "Patient on Amoxicillin 500mg" in the draft. No such MedicationRequest exists in FHIR. Removing now.' },
-  { at: 15000, from: '🛡️ Validator Agent', to: '🔬 Reasoning Agent', type: 'query',    msg: 'I also found an INR value referenced with no source. No recent INR in FHIR records. Flagging as missing.' },
-  { at: 16200, from: '🔬 Reasoning Agent', to: '🛡️ Validator Agent', type: 'response', msg: 'Acknowledged. I have replaced with: "INR not checked this admission — STAT required."' },
-  { at: 16800, from: '🛡️ Validator Agent', to: 'SYSTEM',             type: 'confidence', msg: '📊 Confidence: 0.67 → 0.91 → hallucination removed, safety score finalized.' },
-  { at: 17500, from: '🛡️ Validator Agent', to: 'OUTPUT',             type: 'done',     msg: '✅ VERIFIED: I confirm this handoff is safe to present to a clinician. Safety score: 45/100. Human review required.' },
+  { at: 500,   agent: 'ContextAgent',   level: 'INFO',     msg: 'GET /fhir/r4/Patient/margaret-chen → 200 OK' },
+  { at: 1200,  agent: 'ContextAgent',   level: 'INFO',     msg: 'GET /fhir/r4/Observation → 200 OK  [6 records]' },
+  { at: 1900,  agent: 'ContextAgent',   level: 'INFO',     msg: 'GET /fhir/r4/MedicationRequest → 200 OK  [3 records]' },
+  { at: 2600,  agent: 'ContextAgent',   level: 'INFO',     msg: 'GET /fhir/r4/AllergyIntolerance → 200 OK  [2 records]' },
+  { at: 3300,  agent: 'ContextAgent',   level: 'A2A',      msg: 'EMIT → RiskAgent  |  patient_context_ready  |  14 resources packaged' },
+  { at: 4500,  agent: 'RiskAgent',      level: 'QUERY',    msg: 'QUERY → ContextAgent  |  confirm: no penicillin-class MedicationRequest active?' },
+  { at: 5800,  agent: 'ContextAgent',   level: 'INFO',     msg: 'REPLY → RiskAgent  |  confirmed: Lisinopril, Metformin, Warfarin only. No penicillin.' },
+  { at: 6800,  agent: 'RiskAgent',      level: 'WARN',     msg: 'RECHECK  |  BP trend: 102/68 (admission) → 88/54 (now)  |  trajectory: FALLING' },
+  { at: 7500,  agent: 'RiskAgent',      level: 'INFO',     msg: 'confidence_score: 0.34  |  analyzing vitals + allergy cross-reference...' },
+  { at: 8200,  agent: 'RiskAgent',      level: 'CRITICAL', msg: 'ESCALATE → ReasoningAgent  |  sepsis_risk: 9/10  |  allergy_conflict: PENICILLIN-ANAPHYLAXIS' },
+  { at: 9600,  agent: 'ReasoningAgent', level: 'QUERY',    msg: 'QUERY → RiskAgent  |  allergy severity required before SBAR generation' },
+  { at: 10800, agent: 'RiskAgent',      level: 'INFO',     msg: 'REPLY  |  AllergyIntolerance[0]: Penicillin → ANAPHYLAXIS  |  criticality: high' },
+  { at: 11500, agent: 'ReasoningAgent', level: 'INFO',     msg: 'confidence_score: 0.34 → 0.67  |  grounding SBAR claims in FHIR source...' },
+  { at: 12000, agent: 'ReasoningAgent', level: 'A2A',      msg: 'EMIT → ValidatorAgent  |  sbar_draft_ready  |  requesting hallucination_check' },
+  { at: 13500, agent: 'ValidatorAgent', level: 'CRITICAL', msg: 'HALLUCINATION_DETECTED  |  claim: "Amoxicillin 500mg active"  |  FHIR source: NOT FOUND  |  action: REMOVED' },
+  { at: 15000, agent: 'ValidatorAgent', level: 'WARN',     msg: 'DATA_GAP  |  INR referenced in draft  |  no recent INR in FHIR  |  flagged as missing' },
+  { at: 16200, agent: 'ReasoningAgent', level: 'INFO',     msg: 'PATCH applied  |  "INR not checked this admission — STAT required"' },
+  { at: 16800, agent: 'ValidatorAgent', level: 'INFO',     msg: 'confidence_score: 0.67 → 0.91  |  hallucination removed  |  safety_score computed' },
+  { at: 17500, agent: 'ValidatorAgent', level: 'SUCCESS',  msg: 'VERIFIED  |  safety_score: 45/100  |  handoff_status: READY_FOR_CLINICIAN_REVIEW' },
 ]
 
-const TYPE_STYLES = {
-  fetch:      'text-blue-400',
-  response:   'text-gray-300',
-  a2a:        'text-purple-300 font-semibold',
-  query:      'text-yellow-300',
-  alert:      'text-red-400 font-bold',
-  caught:     'text-red-500 font-black',
-  done:       'text-green-400 font-bold',
-  pause:      'text-orange-400 italic',
-  confidence: 'text-cyan-400 font-semibold',
+const LEVEL_STYLES = {
+  INFO:     { text: 'text-gray-400',   label: 'INFO    ', labelColor: 'text-gray-500'   },
+  WARN:     { text: 'text-amber-400',  label: 'WARN    ', labelColor: 'text-amber-500'  },
+  CRITICAL: { text: 'text-red-400 font-semibold', label: 'CRITICAL', labelColor: 'text-red-500 font-bold' },
+  A2A:      { text: 'text-blue-400',   label: 'A2A     ', labelColor: 'text-blue-500'   },
+  QUERY:    { text: 'text-sky-400',    label: 'QUERY   ', labelColor: 'text-sky-500'    },
+  SUCCESS:  { text: 'text-green-400 font-semibold', label: 'SUCCESS ', labelColor: 'text-green-500 font-bold' },
 }
 
-const TYPE_ICONS = {
-  fetch: '📡', response: '↩️', a2a: '🤝',
-  query: '❓', alert: '🚨', caught: '🛡️',
-  done: '✅', pause: '⏸', confidence: '📊',
-}
-
-const AGENT_DOT_COLORS = {
-  '🧠 Context Agent':   'bg-blue-500',
-  '⚠️ Risk Agent':      'bg-red-500',
-  '🔬 Reasoning Agent': 'bg-yellow-500',
-  '🛡️ Validator Agent': 'bg-green-500',
-  'FHIR R4 Server':     'bg-gray-400',
-  'SYSTEM':             'bg-orange-400',
-  'OUTPUT':             'bg-teal-400',
+const AGENT_COLORS = {
+  ContextAgent:   'text-blue-400',
+  RiskAgent:      'text-red-400',
+  ReasoningAgent: 'text-amber-400',
+  ValidatorAgent: 'text-green-400',
 }
 
 const AGENT_STEPS = [
-  { id: 1, name: '🧠 Context Agent',   sub: 'Groq/Llama 3.3', activeAt: 0,  doneAt: 4  },
-  { id: 2, name: '⚠️ Risk Agent',      sub: 'Groq/Llama 3.3', activeAt: 4,  doneAt: 9  },
-  { id: 3, name: '🔬 Reasoning Agent', sub: 'GPT-4o',          activeAt: 9,  doneAt: 13 },
-  { id: 4, name: '🛡️ Validator Agent', sub: 'GPT-4o',          activeAt: 13, doneAt: 18 },
+  { id: 1, name: 'ContextAgent',   label: 'Context',   sub: 'Groq / Llama 3.3', activeAt: 0,  doneAt: 4  },
+  { id: 2, name: 'RiskAgent',      label: 'Risk',      sub: 'Groq / Llama 3.3', activeAt: 4,  doneAt: 9  },
+  { id: 3, name: 'ReasoningAgent', label: 'Reasoning', sub: 'GPT-4o',            activeAt: 9,  doneAt: 13 },
+  { id: 4, name: 'ValidatorAgent', label: 'Validator', sub: 'GPT-4o',            activeAt: 13, doneAt: 18 },
 ]
 
 function AgentStatusBar({ step }) {
   return (
-    <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 mb-4">
+    <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 mb-3">
       {AGENT_STEPS.map((agent) => {
-        const status = step > agent.doneAt ? 'done' : step >= agent.activeAt ? 'active' : 'waiting'
+        const status = step > agent.doneAt ? 'done' : step >= agent.activeAt ? 'active' : 'idle'
         return (
           <div key={agent.id}
-            className={`rounded-xl p-3 border-2 transition-all duration-500 text-center
+            className={`rounded-lg p-2.5 border transition-all duration-500 text-center
               ${status === 'done'
-                ? 'bg-green-900 border-green-500'
+                ? 'bg-slate-800 border-green-700'
                 : status === 'active'
-                  ? 'bg-blue-800 border-blue-400 shadow-lg shadow-blue-500/30'
-                  : 'bg-blue-950 border-blue-800 opacity-50'}`}>
-            <p className="text-white font-black text-xs">{agent.name}</p>
-            <p className="text-blue-400 text-xs mt-0.5">{agent.sub}</p>
-            <p className={`text-xs mt-1 font-bold
+                  ? 'bg-slate-700 border-slate-500 ring-1 ring-blue-500/40'
+                  : 'bg-slate-900 border-slate-800 opacity-40'}`}>
+            <p className="text-white font-mono text-xs font-semibold">{agent.name}</p>
+            <p className="text-slate-400 text-xs mt-0.5">{agent.sub}</p>
+            <p className={`text-xs mt-1 font-mono
               ${status === 'done'
-                ? 'text-green-400'
+                ? 'text-green-500'
                 : status === 'active'
-                  ? 'text-blue-300 animate-pulse'
-                  : 'text-blue-700'}`}>
-              {status === 'done' ? '✅ Done' : status === 'active' ? '⚙️ Running...' : 'Waiting'}
+                  ? 'text-blue-400 animate-pulse'
+                  : 'text-slate-600'}`}>
+              {status === 'done' ? '● done' : status === 'active' ? '● running' : '○ idle'}
             </p>
           </div>
         )
@@ -106,10 +99,10 @@ function getMockResult(p) {
     safe_to_handoff: false,
     risk: {
       risk_flags: [
-        { flag: '⚠️ CRITICAL ALLERGY: Penicillin anaphylaxis — verify antibiotic orders immediately', severity: 'CRITICAL', recommendation: 'Use azithromycin or fluoroquinolone instead' },
-        { flag: '📉 Hypotension: BP 88/54 falling — septic shock likely', severity: 'CRITICAL', recommendation: 'Initiate sepsis protocol, IV fluids, vasopressors if needed' },
-        { flag: '🩸 Warfarin + active infection = elevated bleeding risk', severity: 'HIGH', recommendation: 'Check INR immediately, hold Warfarin if >3.0' },
-        { flag: '🧠 New confusion in diabetic patient — hypoglycemia or septic encephalopathy', severity: 'HIGH', recommendation: 'Stat glucose check, neuro assessment' },
+        { flag: 'ALLERGY CONFLICT: Penicillin anaphylaxis — verify antibiotic orders immediately', severity: 'CRITICAL', recommendation: 'Use azithromycin or fluoroquinolone instead' },
+        { flag: 'HYPOTENSION: BP 88/54 falling — septic shock probability high', severity: 'CRITICAL', recommendation: 'Initiate sepsis protocol, IV fluids, vasopressors if needed' },
+        { flag: 'DRUG INTERACTION: Warfarin + active infection = elevated bleeding risk', severity: 'HIGH', recommendation: 'Check INR immediately, hold Warfarin if >3.0' },
+        { flag: 'NEURO CHANGE: New confusion in diabetic patient — hypoglycemia or septic encephalopathy', severity: 'HIGH', recommendation: 'Stat glucose check, neuro assessment' },
       ],
       missing_critical_info: [
         'INR level not checked this admission — STAT required',
@@ -120,29 +113,29 @@ function getMockResult(p) {
     },
     handoff: {
       priority_items: [
-        '🚨 PENICILLIN ALLERGY — verify ALL antibiotic orders NOW',
-        '📉 BP 88/54 falling — initiate sepsis protocol immediately',
-        '🩸 Warfarin not monitored — stat INR',
-        '🔬 Blood cultures x2 pending — critical for treatment decision',
-        '🧠 New confusion — rule out hypoglycemia first'
+        'PENICILLIN ALLERGY — verify ALL antibiotic orders before administration',
+        'BP 88/54 falling — initiate sepsis protocol immediately',
+        'Warfarin not monitored this admission — stat INR required',
+        'Blood cultures x2 pending — do not change antibiotics until results',
+        'New confusion — rule out hypoglycemia, consider septic encephalopathy'
       ]
     },
     validation: {
       safety_score: 45,
-      hallucination_caught: '"Patient on Amoxicillin 500mg" — no MedicationRequest found in FHIR. Removed before clinician review.',
+      hallucination_caught: true,
       validated_handoff: {
-        situation: `${p.name}, ${p.age}F — CRITICAL. BP 88/54 falling, sepsis suspected. Penicillin anaphylaxis on file.`,
-        background: `CAP with DM2, HTN. On Warfarin. Admitted 6hrs, poor response. Cultures pending. INR not checked — STAT required.`,
-        assessment: `Probable septic shock. Antibiotic selection critical — NO penicillin/beta-lactams. Warfarin risk elevated. New confusion: rule out hypoglycemia or septic encephalopathy.`,
-        recommendation: `1. Sepsis protocol NOW. 2. Verify antibiotics — NO penicillin. 3. Stat INR + glucose. 4. Await culture results before changing antibiotics. 5. Neuro assessment for confusion.`
+        situation: `${p.name}, ${p.age}F — CRITICAL. BP 88/54 falling, sepsis suspected. Penicillin anaphylaxis documented.`,
+        background: `CAP with DM2, HTN. On Warfarin. Admitted 6hrs, poor response to treatment. Cultures pending. INR not checked this admission — STAT required.`,
+        assessment: `Probable septic shock. Antibiotic selection critical — NO penicillin or beta-lactams. Warfarin risk elevated. New confusion: rule out hypoglycemia or septic encephalopathy.`,
+        recommendation: `1. Sepsis protocol NOW. 2. Verify antibiotics — NO penicillin class. 3. Stat INR + glucose. 4. Await culture results before changing antibiotics. 5. Neuro assessment for confusion.`
       }
     },
     pipeline_steps: [
       { step: 'FHIR Fetch — 4 resource types', duration_ms: 1240 },
-      { agent: '🧠 Context Agent',   provider: 'groq',   duration_ms: 890  },
-      { agent: '⚠️ Risk Agent',      provider: 'groq',   duration_ms: 2340 },
-      { agent: '🔬 Reasoning Agent', provider: 'openai', duration_ms: 4120 },
-      { agent: '🛡️ Validator Agent', provider: 'openai', duration_ms: 5890 },
+      { agent: 'ContextAgent',   provider: 'groq',   duration_ms: 890  },
+      { agent: 'RiskAgent',      provider: 'groq',   duration_ms: 2340 },
+      { agent: 'ReasoningAgent', provider: 'openai', duration_ms: 4120 },
+      { agent: 'ValidatorAgent', provider: 'openai', duration_ms: 5890 },
     ],
     total_duration_ms: 14480
   }
@@ -178,9 +171,11 @@ export default function LiveDemo() {
       setTimeout(() => setAgentStep(18), 17500),
     ]
 
-    const msgTimers = A2A_SCRIPT.map(({ at, from, to, type, msg }) =>
-      setTimeout(() => setMessages(prev => [...prev, { from, to, type, msg }]), at)
-    )
+    A2A_SCRIPT.forEach(({ at, agent, level, msg }) => {
+      setTimeout(() => {
+        setMessages(prev => [...prev, { agent, level, msg, ts: new Date().toLocaleTimeString('en-GB', { hour12: false }) }])
+      }, at)
+    })
 
     setTimeout(() => {
       setResult(getMockResult(patient))
@@ -189,64 +184,70 @@ export default function LiveDemo() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-slate-950">
       <Navbar />
 
       {/* HERO */}
-      <div className="bg-gradient-to-r from-blue-950 to-blue-800 px-4 sm:px-6 py-10 text-center">
-        <h1 className="text-2xl sm:text-3xl md:text-4xl font-black text-white mb-3">
-          ⚡ Watch 4 Agents Work Live
+      <div className="bg-slate-900 border-b border-slate-800 px-4 sm:px-6 py-8 text-center">
+        <h1 className="text-2xl sm:text-3xl md:text-4xl font-black text-white mb-2">
+          Live Agent Pipeline
         </h1>
-        <p className="text-blue-300 text-sm sm:text-base md:text-lg max-w-2xl mx-auto">
-          See agents communicate, catch a hallucination, and produce a
-          verified clinical handoff — in real time.
+        <p className="text-slate-400 text-sm sm:text-base max-w-2xl mx-auto">
+          Watch 4 specialized AI agents communicate via A2A protocol, catch a hallucination,
+          and produce a verified clinical handoff in real time.
         </p>
       </div>
 
       <div className="max-w-6xl mx-auto px-4 sm:px-6 py-6 sm:py-10">
         <div className="grid lg:grid-cols-2 gap-6">
 
-          {/* ── INPUT PANEL ── */}
-          <div className="bg-white rounded-2xl shadow-lg p-4 sm:p-6">
+          {/* INPUT PANEL */}
+          <div className="bg-slate-900 rounded-xl border border-slate-700 p-4 sm:p-6">
             <div className="flex items-center justify-between mb-4">
-              <h2 className="text-base sm:text-xl font-black text-gray-800">👤 Patient Input</h2>
+              <h2 className="text-sm sm:text-base font-bold text-white font-mono">
+                // patient_input
+              </h2>
               <button onClick={() => setPatient(SAMPLE_PATIENT)}
-                className="text-xs bg-blue-100 text-blue-700 px-3 py-1.5 rounded-full hover:bg-blue-200 font-semibold">
-                Load Sample
+                className="text-xs bg-slate-700 text-slate-300 px-3 py-1.5 rounded-lg
+                           hover:bg-slate-600 font-mono border border-slate-600">
+                load_sample()
               </button>
             </div>
 
             <div className="space-y-3">
               {[
-                { label: 'Patient Name',        field: 'name',         type: 'text'     },
-                { label: 'Age',                 field: 'age',          type: 'text'     },
-                { label: 'Gender',              field: 'gender',       type: 'text'     },
-                { label: 'Diagnosis',           field: 'diagnosis',    type: 'textarea' },
-                { label: 'Current Medications', field: 'medications',  type: 'textarea' },
-                { label: 'Vitals',              field: 'vitals',       type: 'textarea' },
-                { label: '⚠️ Allergies',        field: 'allergies',    type: 'text'     },
-                { label: 'Clinical Notes',      field: 'notes',        type: 'textarea' },
-                { label: 'Pending Labs',        field: 'pending_labs', type: 'text'     },
+                { label: 'name',         field: 'name',         type: 'text'     },
+                { label: 'age',          field: 'age',          type: 'text'     },
+                { label: 'gender',       field: 'gender',       type: 'text'     },
+                { label: 'diagnosis',    field: 'diagnosis',    type: 'textarea' },
+                { label: 'medications',  field: 'medications',  type: 'textarea' },
+                { label: 'vitals',       field: 'vitals',       type: 'textarea' },
+                { label: 'allergies',    field: 'allergies',    type: 'text'     },
+                { label: 'notes',        field: 'notes',        type: 'textarea' },
+                { label: 'pending_labs', field: 'pending_labs', type: 'text'     },
               ].map(({ label, field, type }) => (
                 <div key={field}>
-                  <label className="block text-xs sm:text-sm font-semibold text-gray-700 mb-1">
-                    {label}
+                  <label className="block text-xs font-mono text-slate-400 mb-1">
+                    {label}:
                   </label>
                   {type === 'textarea' ? (
                     <textarea
                       value={patient[field]}
                       onChange={e => handleChange(field, e.target.value)}
                       rows={2}
-                      className="w-full border border-gray-200 rounded-lg px-3 py-2 text-xs sm:text-sm
-                                 focus:outline-none focus:ring-2 focus:ring-blue-300 resize-none"
+                      className="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2
+                                 text-xs sm:text-sm text-slate-200 font-mono
+                                 focus:outline-none focus:ring-1 focus:ring-blue-500 resize-none
+                                 placeholder-slate-600"
                     />
                   ) : (
                     <input
                       type="text"
                       value={patient[field]}
                       onChange={e => handleChange(field, e.target.value)}
-                      className="w-full border border-gray-200 rounded-lg px-3 py-2 text-xs sm:text-sm
-                                 focus:outline-none focus:ring-2 focus:ring-blue-300"
+                      className="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2
+                                 text-xs sm:text-sm text-slate-200 font-mono
+                                 focus:outline-none focus:ring-1 focus:ring-blue-500"
                     />
                   )}
                 </div>
@@ -256,155 +257,174 @@ export default function LiveDemo() {
             <button
               onClick={generateHandoff}
               disabled={loading}
-              className="w-full mt-5 bg-blue-600 hover:bg-blue-700 disabled:opacity-50
-                         text-white font-black py-4 rounded-xl transition-all text-base sm:text-lg">
-              {loading ? '🔄 Running 4-Agent Pipeline...' : '🚀 Generate Clinical Handoff'}
+              className="w-full mt-5 bg-blue-600 hover:bg-blue-500 disabled:opacity-40
+                         text-white font-bold py-3 rounded-lg transition-all text-sm font-mono">
+              {loading
+                ? '// running pipeline...'
+                : '> generate_clinical_handoff()'}
             </button>
           </div>
 
-          {/* ── OUTPUT PANEL ── */}
+          {/* OUTPUT PANEL */}
           <div className="space-y-4">
 
-            {/* Agent Pipeline Panel */}
-            <div className="bg-blue-950 rounded-2xl p-4">
-              <p className="text-white font-black text-sm mb-3 text-center">⚡ Live Agent Pipeline</p>
+            {/* System Log Panel */}
+            <div className="bg-slate-900 rounded-xl border border-slate-700 p-4">
+              <div className="flex items-center justify-between mb-3">
+                <p className="text-white font-bold text-sm font-mono">// agent_pipeline</p>
+                <span className={`text-xs font-mono px-2 py-1 rounded
+                  ${loading
+                    ? 'bg-blue-900 text-blue-400 animate-pulse'
+                    : result
+                      ? 'bg-green-900 text-green-400'
+                      : 'bg-slate-800 text-slate-500'}`}>
+                  {loading ? '● RUNNING' : result ? '● COMPLETE' : '○ IDLE'}
+                </span>
+              </div>
 
               <AgentStatusBar step={agentStep} />
 
               {/* FHIR Resource Strip */}
-              <div className="bg-black/30 rounded-xl px-3 py-2 mb-3 font-mono text-xs">
-                <p className="text-blue-500 mb-1 font-bold">FHIR R4 Resources:</p>
-                <div className="flex flex-wrap gap-x-3 gap-y-1">
-                  {[
-                    'Patient',
-                    'Observation/Vitals',
-                    'MedicationRequest',
-                    'AllergyIntolerance',
-                  ].map((r, i) => (
-                    <span key={i} className={agentStep >= 1 ? 'text-green-400' : 'text-blue-800'}>
-                      {agentStep >= 1 ? '✅' : '⬜'} {r}
-                    </span>
-                  ))}
-                </div>
+              <div className="bg-slate-950 rounded-lg px-3 py-2 mb-3 font-mono text-xs border border-slate-800">
+                <span className="text-slate-500">fhir_resources: </span>
+                <span className={agentStep >= 1 ? 'text-green-500' : 'text-slate-700'}>
+                  Patient
+                </span>
+                <span className="text-slate-700 mx-1">·</span>
+                <span className={agentStep >= 1 ? 'text-green-500' : 'text-slate-700'}>
+                  Observation
+                </span>
+                <span className="text-slate-700 mx-1">·</span>
+                <span className={agentStep >= 1 ? 'text-green-500' : 'text-slate-700'}>
+                  MedicationRequest
+                </span>
+                <span className="text-slate-700 mx-1">·</span>
+                <span className={agentStep >= 1 ? 'text-green-500' : 'text-slate-700'}>
+                  AllergyIntolerance
+                </span>
               </div>
 
-              {/* THE WOW MOMENT — Live A2A Chat */}
+              {/* SYSTEM LOG — THE WOW MOMENT */}
               <div>
-                <p className="text-blue-400 text-xs font-bold mb-2 flex items-center gap-2">
-                  <span className={`w-2 h-2 rounded-full shrink-0
-                    ${loading ? 'bg-green-400 animate-pulse' : messages.length > 0 ? 'bg-green-400' : 'bg-blue-700'}`}
-                  />
-                  🤝 A2A Agent Communication — Live
+                <p className="text-slate-500 text-xs font-mono mb-2">
+                  // a2a_communication_log
                 </p>
                 <div
                   ref={chatRef}
-                  className="bg-black/40 rounded-xl p-3 h-60 sm:h-72 overflow-y-auto
-                             font-mono text-xs space-y-2 scroll-smooth">
+                  className="bg-slate-950 rounded-lg p-3 h-60 sm:h-72 overflow-y-auto
+                             font-mono text-xs space-y-1 scroll-smooth border border-slate-800">
                   {messages.length === 0 && !loading && (
-                    <p className="text-blue-700 italic">
-                      Run the pipeline to watch agents communicate in real time...
+                    <p className="text-slate-700 italic">
+                      // awaiting pipeline execution...
                     </p>
                   )}
                   {messages.length === 0 && loading && (
-                    <p className="text-blue-500 animate-pulse">Initializing agent network...</p>
+                    <p className="text-blue-600 animate-pulse">
+                      // initializing agent network...
+                    </p>
                   )}
-                  {messages.map((m, i) => (
-                    <div key={i} className="flex items-start gap-2 leading-relaxed">
-                      <span className={`w-2 h-2 rounded-full mt-1.5 shrink-0
-                        ${AGENT_DOT_COLORS[m.from] || 'bg-gray-500'}`}
-                      />
-                      <div className="min-w-0">
-                        <span className="text-white font-bold">{m.from}</span>
-                        {m.to !== 'SYSTEM' && m.to !== 'OUTPUT' && (
-                          <>
-                            <span className="text-gray-500"> → </span>
-                            <span className="text-gray-400">{m.to}</span>
-                          </>
-                        )}
-                        {m.to === 'OUTPUT' && (
-                          <>
-                            <span className="text-gray-500"> → </span>
-                            <span className="text-teal-400 font-bold">OUTPUT</span>
-                          </>
-                        )}
-                        <span className="text-gray-600"> [{TYPE_ICONS[m.type]}]: </span>
-                        <span className={TYPE_STYLES[m.type]}>{m.msg}</span>
+                  {messages.map((m, i) => {
+                    const style = LEVEL_STYLES[m.level] || LEVEL_STYLES.INFO
+                    const agentColor = AGENT_COLORS[m.agent] || 'text-slate-400'
+                    return (
+                      <div key={i} className="flex items-start gap-2 leading-relaxed">
+                        <span className="text-slate-600 shrink-0 select-none">{m.ts}</span>
+                        <span className={`shrink-0 w-16 ${style.labelColor}`}>{style.label}</span>
+                        <span className={`shrink-0 ${agentColor}`}>[{m.agent}]</span>
+                        <span className={style.text}>{m.msg}</span>
                       </div>
-                    </div>
-                  ))}
+                    )
+                  })}
                   {loading && messages.length > 0 && (
-                    <p className="text-blue-500 animate-pulse pl-4">▋ processing...</p>
+                    <p className="text-slate-600 animate-pulse">▋</p>
                   )}
                 </div>
               </div>
             </div>
 
-            {/* ── RESULTS ── */}
+            {/* RESULTS */}
             {result && (
               <div className="space-y-4">
 
-                {/* Urgency Banner */}
-                <div className="bg-red-600 text-white rounded-2xl p-4 text-center">
-                  <p className="font-black text-base sm:text-lg">
-                    🚨 {result.urgency_level} — Safety Score: {result.validation?.safety_score}/100
+                {/* Status Banner */}
+                <div className="bg-red-950 border border-red-700 rounded-xl p-4 text-center">
+                  <p className="font-bold text-red-400 text-sm sm:text-base font-mono">
+                    STATUS: CRITICAL — safety_score: {result.validation?.safety_score}/100
                   </p>
-                  <p className="text-sm font-semibold opacity-90 mt-1">⚠️ CLINICIAN REVIEW REQUIRED</p>
+                  <p className="text-red-300 text-xs mt-1">
+                    clinician_review_required: true
+                  </p>
                 </div>
 
-                {/* HALLUCINATION CAUGHT — THE #1 WOW MOMENT */}
-                {result.validation?.hallucination_caught && (
-                  <div className="bg-gray-950 border-2 border-red-500 rounded-2xl p-4">
-                    <p className="text-red-400 font-black text-sm mb-3">
-                      🛡️ HALLUCINATION CAUGHT BY VALIDATOR AGENT
+                {/* HALLUCINATION CAUGHT */}
+                <div className="bg-slate-900 border-l-4 border-red-600 rounded-xl p-4">
+                  <div className="flex items-center gap-2 mb-3">
+                    <Shield size={16} className="text-red-400 shrink-0" />
+                    <p className="text-red-400 font-bold text-sm font-mono">
+                      HALLUCINATION_DETECTED — ValidatorAgent
                     </p>
-                    <div className="bg-red-950/60 rounded-xl p-3 mb-3">
-                      <p className="text-red-300 text-xs font-mono line-through opacity-70">
-                        ❌ REMOVED: "Patient on Amoxicillin 500mg for infection treatment."
-                      </p>
-                    </div>
-                    <p className="text-green-400 text-xs font-semibold">
-                      ✅ No MedicationRequest for Amoxicillin found in FHIR R4. Claim deleted before clinician review.
-                    </p>
-                    <div className="mt-3 bg-red-950/30 rounded-xl p-3">
-                      <p className="text-orange-300 text-xs font-bold mb-1">⚠️ Why this matters:</p>
-                      <p className="text-gray-400 text-xs italic">
-                        Amoxicillin is a penicillin-class antibiotic. This patient has penicillin anaphylaxis.
-                        Sending this claim to a clinician could have caused a fatal medication error.
-                        CareRelay stopped it before any human saw it.
-                      </p>
-                    </div>
                   </div>
-                )}
+                  <div className="bg-slate-950 rounded-lg p-3 mb-3 border border-slate-800">
+                    <p className="text-slate-500 text-xs font-mono line-through">
+                      REMOVED: "Patient on Amoxicillin 500mg for infection treatment."
+                    </p>
+                  </div>
+                  <p className="text-green-400 text-xs font-mono">
+                    source_check: no MedicationRequest for Amoxicillin found in FHIR R4
+                  </p>
+                  <p className="text-slate-400 text-xs mt-2">
+                    Amoxicillin is a penicillin-class antibiotic. Patient has documented penicillin anaphylaxis.
+                    This claim was removed before any clinician saw the output.
+                  </p>
+                </div>
 
                 {/* Risk Flags */}
-                <div className="bg-white rounded-2xl shadow p-4 sm:p-5">
-                  <h3 className="font-black text-gray-800 mb-3 text-sm sm:text-base">🔴 Risk Flags Detected</h3>
+                <div className="bg-slate-900 rounded-xl border border-slate-700 p-4">
+                  <div className="flex items-center gap-2 mb-3">
+                    <AlertTriangle size={14} className="text-amber-400 shrink-0" />
+                    <h3 className="font-bold text-white text-sm">Risk Assessment</h3>
+                  </div>
                   <div className="space-y-2">
                     {result.risk?.risk_flags?.map((flag, i) => (
-                      <div key={i} className={`border-l-4 rounded-lg p-3
+                      <div key={i} className={`rounded-lg p-3 border-l-2
                         ${flag.severity === 'CRITICAL'
-                          ? 'border-red-500 bg-red-50'
-                          : flag.severity === 'HIGH'
-                            ? 'border-orange-500 bg-orange-50'
-                            : 'border-yellow-500 bg-yellow-50'}`}>
-                        <p className="font-semibold text-xs sm:text-sm">{flag.flag}</p>
-                        <p className="text-xs mt-1 opacity-70">💊 {flag.recommendation}</p>
+                          ? 'bg-red-950/40 border-red-600'
+                          : 'bg-amber-950/40 border-amber-600'}`}>
+                        <div className="flex items-start gap-2">
+                          {flag.severity === 'CRITICAL'
+                            ? <AlertCircle size={12} className="text-red-400 shrink-0 mt-0.5" />
+                            : <AlertTriangle size={12} className="text-amber-400 shrink-0 mt-0.5" />
+                          }
+                          <div>
+                            <p className={`text-xs font-semibold
+                              ${flag.severity === 'CRITICAL' ? 'text-red-300' : 'text-amber-300'}`}>
+                              [{flag.severity}] {flag.flag}
+                            </p>
+                            <p className="text-slate-500 text-xs mt-1">
+                              rec: {flag.recommendation}
+                            </p>
+                          </div>
+                        </div>
                       </div>
                     ))}
                   </div>
                 </div>
 
                 {/* Verified SBAR */}
-                <div className="bg-white rounded-2xl shadow p-4 sm:p-5">
-                  <h3 className="font-black text-gray-800 mb-3 text-sm sm:text-base">📋 Verified SBAR Handoff</h3>
+                <div className="bg-slate-900 rounded-xl border border-slate-700 p-4">
+                  <div className="flex items-center gap-2 mb-3">
+                    <CheckCircle size={14} className="text-green-400 shrink-0" />
+                    <h3 className="font-bold text-white text-sm">Verified SBAR Handoff</h3>
+                    <span className="ml-auto text-xs text-green-500 font-mono">fhir_verified</span>
+                  </div>
                   {['situation', 'background', 'assessment', 'recommendation'].map((key, i) => (
-                    <div key={key} className={`border-l-4 pl-3 py-2 mb-3
-                      ${['border-blue-500','border-purple-500','border-orange-500','border-green-500'][i]}`}>
-                      <p className={`font-bold text-xs mb-1
-                        ${['text-blue-700','text-purple-700','text-orange-700','text-green-700'][i]}`}>
+                    <div key={key} className={`border-l-2 pl-3 py-2 mb-3
+                      ${['border-blue-600','border-slate-500','border-amber-600','border-green-600'][i]}`}>
+                      <p className={`font-bold text-xs mb-1 font-mono
+                        ${['text-blue-400','text-slate-400','text-amber-400','text-green-400'][i]}`}>
                         {['S — Situation','B — Background','A — Assessment','R — Recommendation'][i]}
                       </p>
-                      <p className="text-xs sm:text-sm text-gray-700">
+                      <p className="text-xs sm:text-sm text-slate-300">
                         {result.validation?.validated_handoff?.[key]}
                       </p>
                     </div>
@@ -412,89 +432,97 @@ export default function LiveDemo() {
                 </div>
 
                 {/* Priority Items */}
-                <div className="bg-blue-50 rounded-2xl p-4">
-                  <h3 className="font-black text-blue-800 mb-3 text-sm">🎯 Priority Items</h3>
+                <div className="bg-slate-900 rounded-xl border border-slate-700 p-4">
+                  <div className="flex items-center gap-2 mb-3">
+                    <Activity size={14} className="text-blue-400 shrink-0" />
+                    <h3 className="font-bold text-white text-sm">Priority Actions</h3>
+                  </div>
                   <ul className="space-y-2">
                     {result.handoff?.priority_items?.map((item, i) => (
-                      <li key={i} className="text-xs sm:text-sm text-blue-700 flex gap-2">
-                        <span className="font-black shrink-0">{i + 1}.</span> {item}
+                      <li key={i} className="flex gap-2 text-xs sm:text-sm text-slate-300">
+                        <span className="text-slate-500 font-mono shrink-0">{i + 1}.</span>
+                        {item}
                       </li>
                     ))}
                   </ul>
                 </div>
 
                 {/* Missing Info */}
-                <div className="bg-yellow-50 rounded-2xl p-4">
-                  <h3 className="font-black text-yellow-800 mb-2 text-sm">🔬 Missing Critical Info</h3>
+                <div className="bg-amber-950/20 rounded-xl border border-amber-900 p-4">
+                  <div className="flex items-center gap-2 mb-2">
+                    <Search size={14} className="text-amber-400 shrink-0" />
+                    <h3 className="font-bold text-amber-400 text-sm">Missing Critical Data</h3>
+                  </div>
                   <ul className="space-y-1">
                     {result.risk?.missing_critical_info?.map((item, i) => (
-                      <li key={i} className="text-xs sm:text-sm text-yellow-700 flex gap-2">
-                        <span className="shrink-0">⏳</span> {item}
+                      <li key={i} className="text-xs sm:text-sm text-amber-300 flex gap-2">
+                        <Clock size={12} className="shrink-0 mt-0.5" />
+                        {item}
                       </li>
                     ))}
                   </ul>
                 </div>
 
                 {/* Human in the Loop */}
-                <div className="bg-white rounded-2xl shadow p-4 sm:p-5 border-2 border-blue-200">
-                  <h3 className="font-black text-gray-800 mb-2 text-sm sm:text-base">
-                    👨‍⚕️ Human-in-the-Loop Review
-                  </h3>
-                  <p className="text-xs sm:text-sm text-gray-600 mb-4">
-                    CareRelay OS never replaces clinical judgment.
-                    A clinician must review and approve before the handoff is sent.
+                <div className="bg-slate-900 rounded-xl border border-blue-700 p-4">
+                  <div className="flex items-center gap-2 mb-2">
+                    <Shield size={14} className="text-blue-400 shrink-0" />
+                    <h3 className="font-bold text-white text-sm">Clinician Review Required</h3>
+                  </div>
+                  <p className="text-xs sm:text-sm text-slate-400 mb-4">
+                    CareRelay OS does not send handoffs autonomously.
+                    A clinician must review and approve before transmission.
                   </p>
                   {approved ? (
-                    <div className="bg-green-100 border border-green-300 rounded-xl p-4 text-center">
-                      <p className="text-green-700 font-black text-sm">
-                        ✅ Handoff Approved & Sent to Night Team
+                    <div className="bg-green-950 border border-green-700 rounded-lg p-4 text-center">
+                      <p className="text-green-400 font-bold text-sm font-mono">
+                        handoff_status: APPROVED
                       </p>
-                      <p className="text-green-600 text-xs mt-1">
-                        Logged to audit trail · {new Date().toLocaleTimeString()}
+                      <p className="text-green-600 text-xs mt-1 font-mono">
+                        audit_logged: true  ·  timestamp: {new Date().toLocaleTimeString()}
                       </p>
                     </div>
                   ) : (
                     <div className="flex flex-col sm:flex-row gap-3">
-                      <button
-                        onClick={() => setApproved(true)}
-                        className="flex-1 bg-green-600 hover:bg-green-700 text-white
-                                   font-bold py-3 rounded-xl transition-all text-sm">
-                        ✅ Approve & Send Handoff
+                      <button onClick={() => setApproved(true)}
+                        className="flex-1 bg-green-700 hover:bg-green-600 text-white
+                                   font-bold py-3 rounded-lg transition-all text-sm">
+                        Approve & Transmit
                       </button>
                       <button
-                        className="flex-1 bg-gray-200 hover:bg-gray-300 text-gray-700
-                                   font-bold py-3 rounded-xl transition-all text-sm">
-                        ✏️ Edit Before Sending
+                        className="flex-1 bg-slate-700 hover:bg-slate-600 text-slate-200
+                                   font-bold py-3 rounded-lg transition-all text-sm">
+                        Edit Before Sending
                       </button>
                     </div>
                   )}
                 </div>
 
                 {/* Pipeline Stats */}
-                <div className="bg-white rounded-2xl shadow p-4 sm:p-5">
-                  <h3 className="font-black text-gray-800 mb-3 text-sm">⚡ Pipeline Execution</h3>
+                <div className="bg-slate-900 rounded-xl border border-slate-700 p-4">
+                  <p className="text-white font-bold text-sm mb-3 font-mono">// execution_summary</p>
                   <div className="space-y-2">
                     {result.pipeline_steps?.map((step, i) => (
                       <div key={i}
-                        className="flex justify-between items-center bg-gray-50 rounded-lg px-3 py-2">
-                        <span className="text-xs font-medium text-gray-700 truncate mr-2">
+                        className="flex justify-between items-center bg-slate-950 rounded-lg px-3 py-2 border border-slate-800">
+                        <span className="text-xs font-mono text-slate-400 truncate mr-2">
                           {step.agent || step.step}
                         </span>
                         <div className="flex items-center gap-2 shrink-0">
                           {step.provider && (
-                            <span className="text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full hidden sm:block">
+                            <span className="text-xs bg-slate-800 text-slate-400 px-2 py-0.5 rounded font-mono hidden sm:block">
                               {step.provider}
                             </span>
                           )}
-                          <span className="font-bold text-green-600 text-xs">{step.duration_ms}ms</span>
-                          <span>✅</span>
+                          <span className="font-mono text-green-500 text-xs">{step.duration_ms}ms</span>
+                          <CheckCircle size={12} className="text-green-500" />
                         </div>
                       </div>
                     ))}
                   </div>
-                  <div className="text-right mt-2">
-                    <span className="text-xs text-gray-500">Total: </span>
-                    <span className="font-black text-blue-700 text-sm">{result.total_duration_ms}ms</span>
+                  <div className="text-right mt-2 font-mono">
+                    <span className="text-xs text-slate-500">total: </span>
+                    <span className="font-bold text-blue-400 text-sm">{result.total_duration_ms}ms</span>
                   </div>
                 </div>
 
