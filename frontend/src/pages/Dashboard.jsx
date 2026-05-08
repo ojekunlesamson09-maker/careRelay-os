@@ -235,49 +235,49 @@ export default function Dashboard() {
           </div>
 
           {/* Console proof panels — bigger fonts, proper padding */}
-          <div className="grid sm:grid-cols-2 gap-4 mb-8">
-            <div className="bg-slate-950 rounded-2xl p-5 border border-slate-800">
-              <p className="text-green-400 font-bold text-sm mb-4 font-mono">
-                // agent_status
-              </p>
-              <div className="space-y-2 font-mono text-sm">
-                <p className="text-slate-400">name: <span className="text-white">CareRelay OS</span></p>
-                <p className="text-slate-400">status: <span className="text-green-400">● online</span></p>
-                <p className="text-slate-400">marketplace: <span className="text-green-400">published</span></p>
-                <p className="text-slate-400">a2a: <span className="text-green-400">enabled</span></p>
-                <p className="text-slate-400">fhir_context: <span className="text-green-400">supported</span></p>
-                <p className="text-slate-400">contexts: <span className="text-blue-300">workspace · patient · group</span></p>
-                <div className="pt-3 mt-3 border-t border-slate-800">
-                  <p className="text-slate-500 text-xs mb-2">skills:</p>
-                  <p className="text-slate-300 text-xs">→ generate_clinical_handoff</p>
-                  <p className="text-slate-300 text-xs">→ get_patient_risk_assessment</p>
-                  <p className="text-slate-300 text-xs">→ get_patient_context</p>
-                </div>
-              </div>
-            </div>
+<div className="grid sm:grid-cols-2 gap-4 mb-8">
+  <div className="bg-slate-950 rounded-2xl p-6 border border-slate-800">
+    <p className="text-green-400 font-bold text-base mb-5 font-mono">
+      // agent_status
+    </p>
+    <div className="space-y-3 font-mono">
+      <p className="text-slate-400 text-sm">name: <span className="text-white">CareRelay OS</span></p>
+      <p className="text-slate-400 text-sm">status: <span className="text-green-400">● online</span></p>
+      <p className="text-slate-400 text-sm">marketplace: <span className="text-green-400">published</span></p>
+      <p className="text-slate-400 text-sm">a2a: <span className="text-green-400">enabled</span></p>
+      <p className="text-slate-400 text-sm">fhir_context: <span className="text-green-400">supported</span></p>
+      <p className="text-slate-400 text-sm">contexts: <span className="text-blue-300">workspace · patient · group</span></p>
+      <div className="pt-4 mt-4 border-t border-slate-800">
+        <p className="text-slate-500 text-sm mb-2">skills:</p>
+        <p className="text-slate-300 text-sm">→ generate_clinical_handoff</p>
+        <p className="text-slate-300 text-sm">→ get_patient_risk_assessment</p>
+        <p className="text-slate-300 text-sm">→ get_patient_context</p>
+      </div>
+    </div>
+  </div>
 
-            <div className="bg-slate-950 rounded-2xl p-5 border border-slate-800">
-              <p className="text-green-400 font-bold text-sm mb-4 font-mono">
-                // mcp_health_check
-              </p>
-              <div className="space-y-2 font-mono text-sm">
-                <p className="text-slate-400">endpoint: <span className="text-blue-300">GET /api/mcp/health</span></p>
-                <p className="text-slate-400">response: <span className="text-green-400">200 OK</span></p>
-                <p className="text-slate-400">mcp_server: <span className="text-white">careRelay-os</span></p>
-                <p className="text-slate-400">status: <span className="text-green-400">online</span></p>
-                <div className="pt-3 mt-3 border-t border-slate-800">
-                  <p className="text-slate-500 text-xs mb-2">tools [3]:</p>
-                  <p className="text-slate-300 text-xs">→ generate_clinical_handoff</p>
-                  <p className="text-slate-300 text-xs">→ get_patient_risk_assessment</p>
-                  <p className="text-slate-300 text-xs">→ get_patient_context</p>
-                </div>
-                <div className="pt-3 mt-3 border-t border-slate-800">
-                  <p className="text-slate-400 text-xs">fhir_extension: <span className="text-green-400">supported</span></p>
-                  <p className="text-slate-400 text-xs">sharp_context: <span className="text-green-400">active</span></p>
-                </div>
-              </div>
-            </div>
-          </div>
+  <div className="bg-slate-950 rounded-2xl p-6 border border-slate-800">
+    <p className="text-green-400 font-bold text-base mb-5 font-mono">
+      // mcp_health_check
+    </p>
+    <div className="space-y-3 font-mono">
+      <p className="text-slate-400 text-sm">endpoint: <span className="text-blue-300">GET /api/mcp/health</span></p>
+      <p className="text-slate-400 text-sm">response: <span className="text-green-400">200 OK</span></p>
+      <p className="text-slate-400 text-sm">mcp_server: <span className="text-white">careRelay-os</span></p>
+      <p className="text-slate-400 text-sm">status: <span className="text-green-400">online</span></p>
+      <div className="pt-4 mt-4 border-t border-slate-800">
+        <p className="text-slate-500 text-sm mb-2">tools [3]:</p>
+        <p className="text-slate-300 text-sm">→ generate_clinical_handoff</p>
+        <p className="text-slate-300 text-sm">→ get_patient_risk_assessment</p>
+        <p className="text-slate-300 text-sm">→ get_patient_context</p>
+      </div>
+      <div className="pt-4 mt-4 border-t border-slate-800">
+        <p className="text-slate-400 text-sm">fhir_extension: <span className="text-green-400">supported</span></p>
+        <p className="text-slate-400 text-sm">sharp_context: <span className="text-green-400">active</span></p>
+      </div>
+    </div>
+  </div>
+</div>
 
           {/* Screenshots */}
           <ScreenshotGallery />
