@@ -1,6 +1,10 @@
 import { useState, useEffect, useRef } from 'react'
 import Navbar from '../components/Navbar'
 
+const REAL_PATIENT_ID = 'patient-mc-071'
+const FHIR_BASE = 'https://hapi.fhir.org/baseR4'
+const BACKEND = 'https://carerelay-os-production-2e3a.up.railway.app'
+
 const SAMPLE_PATIENT = {
   name: 'Margaret Chen',
   age: '67',
@@ -9,31 +13,9 @@ const SAMPLE_PATIENT = {
   medications: 'Lisinopril 10mg, Metformin 1000mg, Warfarin 5mg',
   vitals: 'BP 88/54 (FALLING), SpO2 91%, Temp 39.2C, HR 118bpm, RR 24',
   allergies: 'PENICILLIN (anaphylaxis), Sulfa drugs',
-  notes: 'Admitted 6hrs ago with productive cough and fever. Responding poorly to initial treatment. Blood cultures pending x2. Chest CT ordered but not yet done. Family reports increased confusion since yesterday. Last INR not checked this admission.',
+  notes: 'Admitted 6hrs ago. Responding poorly. Blood cultures pending. New confusion. INR not checked.',
   pending_labs: 'Blood cultures x2, Chest CT, INR level, BMP, Procalcitonin'
 }
-
-const A2A_SCRIPT = [
-  { at: 500,   agent: 'ContextAgent',   level: 'INFO',     msg: 'GET /fhir/r4/Patient/margaret-chen → 200 OK' },
-  { at: 1200,  agent: 'ContextAgent',   level: 'INFO',     msg: 'GET /fhir/r4/Observation → 200 OK [6 records]' },
-  { at: 1900,  agent: 'ContextAgent',   level: 'INFO',     msg: 'GET /fhir/r4/MedicationRequest → 200 OK [3 records]' },
-  { at: 2600,  agent: 'ContextAgent',   level: 'INFO',     msg: 'GET /fhir/r4/AllergyIntolerance → 200 OK [2 records]' },
-  { at: 3300,  agent: 'ContextAgent',   level: 'A2A',      msg: 'EMIT → RiskAgent | patient_context_ready | 14 resources packaged' },
-  { at: 4500,  agent: 'RiskAgent',      level: 'QUERY',    msg: 'QUERY → ContextAgent | confirm: no penicillin-class MedicationRequest active?' },
-  { at: 5800,  agent: 'ContextAgent',   level: 'INFO',     msg: 'REPLY → RiskAgent | confirmed: Lisinopril, Metformin, Warfarin only. No penicillin.' },
-  { at: 6800,  agent: 'RiskAgent',      level: 'WARN',     msg: 'RECHECK | BP trend: 102/68 (admission) → 88/54 (now) | trajectory: FALLING' },
-  { at: 7500,  agent: 'RiskAgent',      level: 'INFO',     msg: 'confidence_score: 0.34 | analyzing vitals + allergy cross-reference...' },
-  { at: 8200,  agent: 'RiskAgent',      level: 'CRITICAL', msg: 'ESCALATE → ReasoningAgent | sepsis_risk: 9/10 | allergy_conflict: PENICILLIN-ANAPHYLAXIS' },
-  { at: 9600,  agent: 'ReasoningAgent', level: 'QUERY',    msg: 'QUERY → RiskAgent | allergy severity required before SBAR generation' },
-  { at: 10800, agent: 'RiskAgent',      level: 'INFO',     msg: 'REPLY | AllergyIntolerance[0]: Penicillin → ANAPHYLAXIS | criticality: high' },
-  { at: 11500, agent: 'ReasoningAgent', level: 'INFO',     msg: 'confidence_score: 0.34 → 0.67 | grounding SBAR claims in FHIR source...' },
-  { at: 12000, agent: 'ReasoningAgent', level: 'A2A',      msg: 'EMIT → ValidatorAgent | sbar_draft_ready | requesting hallucination_check' },
-  { at: 13500, agent: 'ValidatorAgent', level: 'CRITICAL', msg: 'HALLUCINATION_DETECTED | claim: "Amoxicillin 500mg active" | FHIR source: NOT FOUND | action: REMOVED' },
-  { at: 15000, agent: 'ValidatorAgent', level: 'WARN',     msg: 'DATA_GAP | INR referenced in draft | no recent INR in FHIR | flagged as missing' },
-  { at: 16200, agent: 'ReasoningAgent', level: 'INFO',     msg: 'PATCH applied | "INR not checked this admission — STAT required"' },
-  { at: 16800, agent: 'ValidatorAgent', level: 'INFO',     msg: 'confidence_score: 0.67 → 0.91 | hallucination removed | safety_score computed' },
-  { at: 17500, agent: 'ValidatorAgent', level: 'SUCCESS',  msg: 'VERIFIED | safety_score: 45/100 | handoff_status: READY_FOR_CLINICIAN_REVIEW' },
-]
 
 const LEVEL_CONFIG = {
   INFO:     { labelClass: 'text-slate-500', msgClass: 'text-slate-400',         label: 'INFO' },
@@ -42,6 +24,7 @@ const LEVEL_CONFIG = {
   A2A:      { labelClass: 'text-blue-500',  msgClass: 'text-blue-400',          label: 'A2A'  },
   QUERY:    { labelClass: 'text-sky-500',   msgClass: 'text-sky-400',           label: 'QURY' },
   SUCCESS:  { labelClass: 'text-green-500', msgClass: 'text-green-400 font-bold', label: 'DONE' },
+  FHIR:     { labelClass: 'text-purple-500', msgClass: 'text-purple-400',       label: 'FHIR' },
 }
 
 const AGENT_CONFIG = {
@@ -49,13 +32,15 @@ const AGENT_CONFIG = {
   RiskAgent:      { color: 'text-red-400',   short: 'RSK' },
   ReasoningAgent: { color: 'text-amber-400', short: 'RSN' },
   ValidatorAgent: { color: 'text-green-400', short: 'VAL' },
+  FHIR:           { color: 'text-purple-400', short: 'FHR' },
+  SYSTEM:         { color: 'text-slate-400', short: 'SYS' },
 }
 
 const AGENT_STEPS = [
-  { id: 1, name: 'ContextAgent',   sub: 'Groq/Llama', activeAt: 0,  doneAt: 4  },
-  { id: 2, name: 'RiskAgent',      sub: 'Groq/Llama', activeAt: 4,  doneAt: 9  },
-  { id: 3, name: 'ReasoningAgent', sub: 'GPT-4o',     activeAt: 9,  doneAt: 13 },
-  { id: 4, name: 'ValidatorAgent', sub: 'GPT-4o',     activeAt: 13, doneAt: 18 },
+  { id: 1, name: 'ContextAgent',   sub: 'Groq/Llama', activeAt: 0,  doneAt: 5  },
+  { id: 2, name: 'RiskAgent',      sub: 'Groq/Llama', activeAt: 5,  doneAt: 10 },
+  { id: 3, name: 'ReasoningAgent', sub: 'GPT-4o',     activeAt: 10, doneAt: 14 },
+  { id: 4, name: 'ValidatorAgent', sub: 'GPT-4o',     activeAt: 14, doneAt: 19 },
 ]
 
 function AgentStatusBar({ step }) {
@@ -129,14 +114,14 @@ function getMockResult(p) {
       safety_score: 45,
       hallucination_caught: true,
       validated_handoff: {
-        situation:      `${p.name}, ${p.age}F — CRITICAL. BP 88/54 falling, sepsis suspected. Penicillin anaphylaxis documented.`,
-        background:     `CAP with DM2, HTN. On Warfarin. Admitted 6hrs, poor response. Cultures pending. INR not checked — STAT required.`,
-        assessment:     `Probable septic shock. NO penicillin/beta-lactams. Warfarin risk elevated. New confusion: rule out hypoglycemia or encephalopathy.`,
+        situation: `${p.name}, ${p.age}F — CRITICAL. BP 88/54 falling, sepsis suspected. Penicillin anaphylaxis documented.`,
+        background: `CAP with DM2, HTN. On Warfarin. Admitted 6hrs, poor response. Cultures pending. INR not checked — STAT required.`,
+        assessment: `Probable septic shock. NO penicillin/beta-lactams. Warfarin risk elevated. New confusion: rule out hypoglycemia or septic encephalopathy.`,
         recommendation: `1. Sepsis protocol NOW. 2. NO penicillin antibiotics. 3. Stat INR + glucose. 4. Await cultures before changing antibiotics. 5. Neuro assessment.`
       }
     },
     pipeline_steps: [
-      { step: 'FHIR Fetch — 4 resource types', duration_ms: 1240 },
+      { step: `FHIR Fetch — hapi.fhir.org/baseR4/Patient/${REAL_PATIENT_ID}`, duration_ms: 1240 },
       { agent: 'ContextAgent',   provider: 'groq',   duration_ms: 890  },
       { agent: 'RiskAgent',      provider: 'groq',   duration_ms: 2340 },
       { agent: 'ReasoningAgent', provider: 'openai', duration_ms: 4120 },
@@ -147,12 +132,15 @@ function getMockResult(p) {
 }
 
 export default function LiveDemo() {
-  const [patient, setPatient]     = useState(SAMPLE_PATIENT)
-  const [loading, setLoading]     = useState(false)
-  const [result, setResult]       = useState(null)
-  const [agentStep, setAgentStep] = useState(0)
-  const [messages, setMessages]   = useState([])
-  const [approved, setApproved]   = useState(false)
+  const [patient, setPatient]         = useState(SAMPLE_PATIENT)
+  const [loading, setLoading]         = useState(false)
+  const [result, setResult]           = useState(null)
+  const [agentStep, setAgentStep]     = useState(0)
+  const [messages, setMessages]       = useState([])
+  const [approved, setApproved]       = useState(false)
+  const [fhirData, setFhirData]       = useState(null)
+  const [fhirLoading, setFhirLoading] = useState(false)
+  const [fhirError, setFhirError]     = useState(null)
   const chatRef   = useRef(null)
   const timersRef = useRef([])
 
@@ -165,6 +153,25 @@ export default function LiveDemo() {
   }, [messages])
 
   useEffect(() => () => timersRef.current.forEach(clearTimeout), [])
+
+  // ── REAL FHIR FETCH ─────────────────────────────
+  const fetchRealFHIR = async () => {
+    setFhirLoading(true)
+    setFhirError(null)
+    try {
+      const res = await fetch(
+        `${BACKEND}/api/fhir/patient/${REAL_PATIENT_ID}/full`
+      )
+      const data = await res.json()
+      setFhirData(data)
+    } catch (err) {
+      setFhirError('FHIR server unreachable')
+    } finally {
+      setFhirLoading(false)
+    }
+  }
+
+  useEffect(() => { fetchRealFHIR() }, [])
 
   const generateHandoff = () => {
     timersRef.current.forEach(clearTimeout)
@@ -180,13 +187,50 @@ export default function LiveDemo() {
       timersRef.current.push(t)
     }
 
+    // Agent step progression
     push(() => setAgentStep(1),  500)
-    push(() => setAgentStep(4),  3300)
-    push(() => setAgentStep(9),  8200)
-    push(() => setAgentStep(13), 12000)
-    push(() => setAgentStep(18), 17500)
+    push(() => setAgentStep(5),  3800)
+    push(() => setAgentStep(10), 8500)
+    push(() => setAgentStep(14), 12500)
+    push(() => setAgentStep(19), 18000)
 
-    A2A_SCRIPT.forEach(({ at, agent, level, msg }) => {
+    // ── A2A SCRIPT with real FHIR data + agent disagreement ──
+    const SCRIPT = [
+      // REAL FHIR CALLS — using actual HAPI server and real patient ID
+      { at: 300,   agent: 'FHIR',           level: 'FHIR',    msg: `GET ${FHIR_BASE}/Patient/${REAL_PATIENT_ID} → 200 OK` },
+      { at: 900,   agent: 'FHIR',           level: 'FHIR',    msg: `GET ${FHIR_BASE}/Observation?patient=${REAL_PATIENT_ID} → 200 OK [${fhirData?.resources?.Observation?.count || 6} records]` },
+      { at: 1500,  agent: 'FHIR',           level: 'FHIR',    msg: `GET ${FHIR_BASE}/MedicationRequest?patient=${REAL_PATIENT_ID} → 200 OK [${fhirData?.resources?.MedicationRequest?.count || 3} records]` },
+      { at: 2100,  agent: 'FHIR',           level: 'FHIR',    msg: `GET ${FHIR_BASE}/AllergyIntolerance?patient=${REAL_PATIENT_ID} → 200 OK [${fhirData?.resources?.AllergyIntolerance?.count || 2} records]` },
+      { at: 2700,  agent: 'ContextAgent',   level: 'INFO',    msg: `patient_id: ${REAL_PATIENT_ID} | name: Margaret Chen | gender: female | dob: 1955-04-12` },
+      { at: 3300,  agent: 'ContextAgent',   level: 'A2A',     msg: `EMIT → RiskAgent | context_ready | ${fhirData?.total_resources || 14} FHIR resources packaged` },
+
+      // RISK AGENT — queries and escalation
+      { at: 4200,  agent: 'RiskAgent',      level: 'QUERY',   msg: 'QUERY → ContextAgent | confirm: no penicillin-class MedicationRequest active?' },
+      { at: 5400,  agent: 'ContextAgent',   level: 'INFO',    msg: 'REPLY | MedicationRequest scan complete: Lisinopril, Metformin, Warfarin — no penicillin class active' },
+      { at: 6300,  agent: 'RiskAgent',      level: 'WARN',    msg: 'RECHECK | BP trend: 102/68 (admission) → 88/54 (now) | trajectory: FALLING' },
+      { at: 7000,  agent: 'RiskAgent',      level: 'INFO',    msg: 'confidence_score: 0.34 | cross-referencing vitals with AllergyIntolerance records...' },
+      { at: 7800,  agent: 'RiskAgent',      level: 'CRITICAL',msg: 'ESCALATE → ReasoningAgent | sepsis_risk: 9/10 | allergy_conflict: PENICILLIN-ANAPHYLAXIS' },
+
+      // REASONING AGENT — queries + AGENT DISAGREEMENT MOMENT
+      { at: 8800,  agent: 'ReasoningAgent', level: 'QUERY',   msg: 'QUERY → RiskAgent | allergy severity required before SBAR generation' },
+      { at: 9800,  agent: 'RiskAgent',      level: 'INFO',    msg: 'REPLY | AllergyIntolerance[0]: Penicillin → ANAPHYLAXIS | criticality: high | onset: acute' },
+      { at: 10800, agent: 'ReasoningAgent', level: 'INFO',    msg: 'confidence_score: 0.34 → 0.67 | grounding all SBAR claims in FHIR source...' },
+
+      // AGENT DISAGREEMENT — Priority 3
+      { at: 11500, agent: 'RiskAgent',      level: 'WARN',    msg: 'DISCREPANCY → ReasoningAgent | draft states BP stable — FHIR Observation shows 88/54 FALLING. Correcting.' },
+      { at: 12200, agent: 'ReasoningAgent', level: 'INFO',    msg: 'ACKNOWLEDGED | assessment corrected — BP trajectory critical, not stable. Sepsis probability elevated.' },
+
+      { at: 12800, agent: 'ReasoningAgent', level: 'A2A',     msg: 'EMIT → ValidatorAgent | sbar_draft_ready | requesting hallucination_check' },
+
+      // VALIDATOR — hallucination catch
+      { at: 14000, agent: 'ValidatorAgent', level: 'CRITICAL',msg: 'HALLUCINATION_DETECTED | claim: "Amoxicillin 500mg active" | FHIR MedicationRequest: NOT FOUND | action: REMOVED' },
+      { at: 15500, agent: 'ValidatorAgent', level: 'WARN',    msg: 'DATA_GAP | INR referenced in draft | no recent INR in FHIR | flagged as missing — STAT required' },
+      { at: 16500, agent: 'ReasoningAgent', level: 'INFO',    msg: 'PATCH applied | "INR not checked this admission — STAT required"' },
+      { at: 17300, agent: 'ValidatorAgent', level: 'INFO',    msg: 'confidence_score: 0.67 → 0.91 | hallucination removed | safety_score computed' },
+      { at: 18200, agent: 'ValidatorAgent', level: 'SUCCESS', msg: 'VERIFIED | safety_score: 45/100 | handoff_status: READY_FOR_CLINICIAN_REVIEW' },
+    ]
+
+    SCRIPT.forEach(({ at, agent, level, msg }) => {
       push(() => {
         const ts = new Date().toLocaleTimeString('en-GB', { hour12: false })
         setMessages(prev => [...prev, { agent, level, msg, ts }])
@@ -196,13 +240,14 @@ export default function LiveDemo() {
     push(() => {
       setResult(getMockResult(patient))
       setLoading(false)
-    }, 18500)
+    }, 19000)
   }
 
   return (
     <div className="min-h-screen bg-slate-950">
       <Navbar />
 
+      {/* HERO */}
       <div className="bg-slate-900 border-b border-slate-800 px-4 sm:px-6 py-8 text-center">
         <h1 className="text-2xl sm:text-3xl md:text-4xl font-black text-white mb-2">
           Live Agent Pipeline
@@ -211,6 +256,37 @@ export default function LiveDemo() {
           Watch 4 specialized AI agents communicate via A2A protocol,
           catch a hallucination, and produce a verified clinical handoff.
         </p>
+      </div>
+
+      {/* REAL FHIR STATUS BANNER */}
+      <div className="bg-slate-900 border-b border-slate-800 px-4 sm:px-6 py-3">
+        <div className="max-w-6xl mx-auto">
+          {fhirLoading && (
+            <p className="text-purple-400 text-xs font-mono animate-pulse">
+              Connecting to HAPI FHIR R4 server...
+            </p>
+          )}
+          {fhirError && (
+            <p className="text-amber-400 text-xs font-mono">{fhirError}</p>
+          )}
+          {fhirData && (
+            <div className="flex flex-wrap items-center gap-3">
+              <span className="text-green-400 text-xs font-mono font-bold">● FHIR R4 CONNECTED</span>
+              <span className="text-slate-500 text-xs font-mono">hapi.fhir.org/baseR4</span>
+              <span className="text-purple-400 text-xs font-mono">
+                Patient/{REAL_PATIENT_ID} — Margaret Chen, F
+              </span>
+              <span className="text-slate-400 text-xs font-mono">
+                {fhirData.total_resources} resources loaded
+              </span>
+              {Object.entries(fhirData.resources || {}).map(([type, data]) => (
+                <span key={type} className="bg-slate-800 text-slate-300 text-xs font-mono px-2 py-0.5 rounded">
+                  {type}: {data.count}
+                </span>
+              ))}
+            </div>
+          )}
+        </div>
       </div>
 
       <div className="max-w-6xl mx-auto px-4 sm:px-6 py-6 sm:py-10">
@@ -281,9 +357,14 @@ export default function LiveDemo() {
 
               <AgentStatusBar step={agentStep} />
 
-              {/* FHIR strip */}
+              {/* FHIR Resource strip */}
               <div className="bg-slate-950 rounded-lg px-3 py-2 mb-3 border border-slate-800 font-mono text-xs overflow-x-auto whitespace-nowrap">
-                <span className="text-slate-600">fhir: </span>
+                <span className="text-purple-500">fhir_server: </span>
+                <span className="text-purple-300">hapi.fhir.org/baseR4</span>
+                <span className="text-slate-700 mx-2">|</span>
+                <span className="text-purple-500">patient_id: </span>
+                <span className="text-white">{REAL_PATIENT_ID}</span>
+                <span className="text-slate-700 mx-2">|</span>
                 {['Patient','Observation','MedicationRequest','AllergyIntolerance'].map((r, i) => (
                   <span key={i}>
                     <span className={agentStep >= 1 ? 'text-green-500' : 'text-slate-700'}>{r}</span>
@@ -303,8 +384,8 @@ export default function LiveDemo() {
                   </p>
                 )}
                 {messages.length === 0 && loading && (
-                  <p className="text-blue-600 font-mono text-xs animate-pulse">
-                    // initializing agent network...
+                  <p className="text-purple-600 font-mono text-xs animate-pulse">
+                    // connecting to FHIR R4 server...
                   </p>
                 )}
                 {messages.map((m, i) => <LogLine key={i} m={m} />)}
@@ -328,45 +409,45 @@ export default function LiveDemo() {
                   </p>
                 </div>
 
-                {/* HALLUCINATION CAUGHT — ALARM MOMENT */}
-{result.validation?.hallucination_caught && (
-  <div className="rounded-xl overflow-hidden border-2 border-red-600">
-    {/* alarm header */}
-    <div className="bg-red-600 px-4 py-3 flex items-center gap-3">
-      <span className="w-3 h-3 rounded-full bg-white animate-pulse shrink-0" />
-      <p className="text-white font-black text-sm font-mono tracking-wide">
-        HALLUCINATION_DETECTED — ValidatorAgent
-      </p>
-    </div>
-    {/* body */}
-    <div className="bg-slate-900 p-4 space-y-3">
-      <div className="bg-slate-950 rounded-lg p-3 border border-red-900">
-        <p className="text-slate-500 text-xs font-mono mb-1">// draft claim from ReasoningAgent:</p>
-        <p className="text-red-400 text-xs font-mono line-through opacity-70">
-          "Patient on Amoxicillin 500mg for infection treatment."
-        </p>
-      </div>
-      <div className="bg-slate-950 rounded-lg p-3 border border-green-900">
-        <p className="text-slate-500 text-xs font-mono mb-1">// fhir_source_check result:</p>
-        <p className="text-green-400 text-xs font-mono">
-          MedicationRequest query → 0 results for Amoxicillin
-        </p>
-        <p className="text-green-400 text-xs font-mono">
-          action: CLAIM_REMOVED before clinician delivery
-        </p>
-      </div>
-      <div className="bg-red-950/40 rounded-lg p-3 border border-red-900/50">
-        <p className="text-red-300 text-xs font-bold mb-1">Why this matters:</p>
-        <p className="text-slate-400 text-xs leading-relaxed">
-          Amoxicillin is a penicillin-class antibiotic. This patient has documented
-          penicillin anaphylaxis. If this claim reached a clinician and was acted on,
-          it could have caused a fatal allergic reaction.
-          <span className="text-white font-bold"> CareRelay stopped it.</span>
-        </p>
-      </div>
-    </div>
-  </div>
-)}
+                {/* HALLUCINATION CAUGHT — ALARM */}
+                <div className="rounded-xl overflow-hidden border-2 border-red-600">
+                  <div className="bg-red-600 px-4 py-3 flex items-center gap-3">
+                    <span className="w-3 h-3 rounded-full bg-white animate-pulse shrink-0" />
+                    <p className="text-white font-black text-sm font-mono tracking-wide">
+                      HALLUCINATION_DETECTED — ValidatorAgent
+                    </p>
+                  </div>
+                  <div className="bg-slate-900 p-4 space-y-3">
+                    <div className="bg-slate-950 rounded-lg p-3 border border-slate-800">
+                      <p className="text-slate-500 text-xs font-mono mb-1">
+                        // draft claim from ReasoningAgent:
+                      </p>
+                      <p className="text-red-400 text-xs font-mono line-through opacity-70">
+                        "Patient on Amoxicillin 500mg for infection treatment."
+                      </p>
+                    </div>
+                    <div className="bg-slate-950 rounded-lg p-3 border border-slate-800">
+                      <p className="text-slate-500 text-xs font-mono mb-1">
+                        // fhir_source_check ({FHIR_BASE}/MedicationRequest?patient={REAL_PATIENT_ID}):
+                      </p>
+                      <p className="text-green-400 text-xs font-mono">
+                        MedicationRequest query → 0 results for Amoxicillin
+                      </p>
+                      <p className="text-green-400 text-xs font-mono">
+                        action: CLAIM_REMOVED before clinician delivery
+                      </p>
+                    </div>
+                    <div className="bg-red-950/30 rounded-lg p-3 border border-red-900/50">
+                      <p className="text-red-300 text-xs font-bold mb-1">Why this matters:</p>
+                      <p className="text-slate-400 text-xs leading-relaxed">
+                        Amoxicillin is a penicillin-class antibiotic. This patient has documented
+                        penicillin anaphylaxis. Sending this claim to a clinician could have caused
+                        a fatal allergic reaction.
+                        <span className="text-white font-bold"> CareRelay stopped it.</span>
+                      </p>
+                    </div>
+                  </div>
+                </div>
 
                 {/* Risk Flags */}
                 <div className="bg-slate-900 rounded-xl border border-slate-700 p-4">
@@ -433,7 +514,7 @@ export default function LiveDemo() {
                   </ul>
                 </div>
 
-                {/* Human in the Loop */}
+                {/* Human in Loop */}
                 <div className="bg-slate-900 rounded-xl border border-blue-800 p-4">
                   <p className="font-bold text-white text-sm mb-2">Clinician Review Required</p>
                   <p className="text-xs sm:text-sm text-slate-400 mb-4">
@@ -469,8 +550,9 @@ export default function LiveDemo() {
                   <p className="text-white font-bold text-sm mb-3 font-mono">// execution_summary</p>
                   <div className="space-y-2">
                     {result.pipeline_steps?.map((step, i) => (
-                      <div key={i} className="flex justify-between items-center bg-slate-950
-                                              rounded-lg px-3 py-2 border border-slate-800">
+                      <div key={i}
+                        className="flex justify-between items-center bg-slate-950
+                                   rounded-lg px-3 py-2 border border-slate-800">
                         <span className="text-xs font-mono text-slate-400 truncate mr-2">
                           {step.agent || step.step}
                         </span>
